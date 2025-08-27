@@ -373,7 +373,9 @@
         <div class="form-container">
             <h2 class="section-title">お申し込みはこちら</h2>
             
-            <form id="registrationForm">
+            <form id="registrationForm"
+                      action="https://hooks.zapier.com/hooks/catch/24101324/uhuccm8/"
+                      method="POST">
                 <div class="form-group">
                     <label for="firstName">
                         <span class="english-text">First Name</span>（名）
@@ -560,17 +562,10 @@
             submitBtn.disabled = true;
             
             // フォームデータの収集
-            const formData = {
-                firstName: document.getElementById('firstName').value,
-                lastName: document.getElementById('lastName').value,
-                email: document.getElementById('email').value,
-                phone: document.getElementById('phone').value,
-                school: document.getElementById('school').value,
-                graduationYear: document.getElementById('graduationYear').value,
-                englishLevel: document.getElementById('englishLevel').value,
-                privacyAccepted: document.getElementById('privacy').checked,
-                timestamp: new Date().toISOString()
-            };
+            const fd = new FormData(form);                           // ← form要素から一括取得
+            fd.append('timestamp', new Date().toISOString());        // ← 追加項目があればappend
+            // チェックボックスの明示フラグが欲しければ（Zapier側で扱いやすいように）
+            fd.set('privacyAccepted', document.getElementById('privacy').checked ? 'true' : 'false');
             
             try {
                 // LIFFが利用可能な場合はLINEメッセージ送信
@@ -583,12 +578,9 @@
                 
                  //ここで実際のバックエンドAPIにデータを送信
                  const response = await fetch('https://hooks.zapier.com/hooks/catch/24101324/uhuccm8/', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                     },
-                     body: JSON.stringify(formData)
-                 });
+                  method: 'POST',
+                  body: fd                     // ← ヘッダーは一切つけない（ブラウザが自動付与）
+                });
                 
                 // 成功時の処理
                 alert('登録が完了しました！今後のウェビナーにワンタップで参加できます。');
