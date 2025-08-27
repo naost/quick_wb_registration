@@ -566,6 +566,24 @@
             fd.append('timestamp', new Date().toISOString());        // ← 追加項目があればappend
             // チェックボックスの明示フラグが欲しければ（Zapier側で扱いやすいように）
             fd.set('privacyAccepted', document.getElementById('privacy').checked ? 'true' : 'false');
+             // LIFFのユーザー識別子を同梱（取得できたときだけ）
+             if (typeof liff !== 'undefined') {
+               try {
+                 const p = await liff.getProfile(); // ← ここで userId を再取得
+                 if (p && p.userId) {
+                   fd.append('lineUserId', p.userId);
+                   fd.append('lineDisplayName', p.displayName || '');
+                   fd.append('linePictureUrl', p.pictureUrl || '');
+                 }
+                 // IDトークン（検証用に使うなら一緒に送る）
+                 const idToken = liff.getIDToken();
+                 if (idToken) fd.append('lineIdToken', idToken);
+                 const decoded = liff.getDecodedIDToken?.();
+                 if (decoded && decoded.sub) fd.append('lineSub', decoded.sub); // sub もユーザー識別子
+               } catch(e) {
+                 console.warn('Could not append LINE user info:', e);
+               }
+             }
             
             try {
                 // LIFFが利用可能な場合はLINEメッセージ送信
