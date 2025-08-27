@@ -230,7 +230,7 @@
                 今後のウェビナーには、LINEから簡単にワンタップで参加いただけます。
             </p>
             
-            <button class="close-button" onclick="closeWindow()">
+            <button class="close-button" onclick="sendMessageAndClose()">
                 画面を閉じる
             </button>
         </div>
@@ -268,7 +268,34 @@
                 window.history.back();
             }
         }
-        
+        // 画面を閉じる前にユーザーからメッセージを送信する（LIFF内のみ）
+        // ★関数を非同期化し、送信→クローズの順に変更
+        async function closeWindow() {
+            try {
+                if (typeof liff !== 'undefined' && liff.isInClient()) {
+                    // ★ユーザーからメッセージ送信
+                    await liff.sendMessages([
+                        { type: 'text', text: 'クイックウェビナー登録フォーム送信完了' }
+                    ]);
+                    // ★送信後にLIFFウィンドウを閉じる
+                    liff.closeWindow();
+                } else {
+                    // 通常のブラウザの場合（従来通り）
+                    window.close();
+                    if (!window.closed) {
+                        window.history.back();
+                    }
+                }
+            } catch (error) {
+                console.error('Close window error:', error);
+                // ★送信失敗時も閉じる挙動は維持
+                if (typeof liff !== 'undefined' && liff.isInClient()) {
+                    liff.closeWindow();
+                } else {
+                    window.history.back();
+                }
+            }
+        }        
         // ページ読み込み時の初期化
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof liff !== 'undefined') {
