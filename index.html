@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クイックウェビナー登録申請フォーム</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.0/sdk.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary-color: #3A0407;
+            --secondary-indigo: #7373E3;
+            --secondary-light-blue: #77A9F7;
+            --supplementary-sand: #AE8C6F;
+            --supplementary-beige: #DAC9BB;
+            --supplementary-mist: #F5F1EE;
+        }
+        
+        @font-face {
+            font-family: 'GaramondNarrowBookITC';
+            src: local('Garamond'), local('Garamond Narrow');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, var(--supplementary-mist) 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(58, 4, 7, 0.1);
+            overflow: hidden;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #5A0A0F 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(115, 115, 227, 0.1) 0%, transparent 70%);
+            animation: pulse 15s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .logo-container {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+            transition: transform 0.3s ease;
+        }
+        
+        .logo-container:hover {
+            transform: scale(1.05);
+        }
+        
+        .logo-container img {
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
+        }
+        
+        .logo-placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 12px;
+        }
+        
+        .sub-header {
+            font-size: 14px;
+            color: var(--supplementary-beige);
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+            letter-spacing: 0.5px;
+        }
+        
+        h1 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .header-description {
+            font-size: 13px;
+            color: var(--supplementary-mist);
+            position: relative;
+            z-index: 1;
+            line-height: 1.6;
+        }
+        
+        .form-container {
+            padding: 40px 30px;
+        }
+        
+        .section-title {
+            background: linear-gradient(90deg, var(--secondary-indigo), var(--secondary-light-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-size: 18px;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+            animation: fadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        .form-group:nth-child(1) { animation-delay: 0.1s; }
+        .form-group:nth-child(2) { animation-delay: 0.15s; }
+        .form-group:nth-child(3) { animation-delay: 0.2s; }
+        .form-group:nth-child(4) { animation-delay: 0.25s; }
+        .form-group:nth-child(5) { animation-delay: 0.3s; }
+        .form-group:nth-child(6) { animation-delay: 0.35s; }
+        .form-group:nth-child(7) { animation-delay: 0.4s; }
+        .form-group:nth-child(8) { animation-delay: 0.45s; }
+        
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+            }
+        }
+        
+        label {
+            display: block;
+            font-size: 14px;
+            color: var(--primary-color);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        
+        .english-text {
+            font-family: 'GaramondNarrowBookITC', 'Garamond', serif;
+        }
+        
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"],
+        select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid var(--supplementary-beige);
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: 'Noto Sans JP', sans-serif;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        input:focus,
+        select:focus {
+            outline: none;
+            border-color: var(--secondary-indigo);
+            box-shadow: 0 0 0 4px rgba(115, 115, 227, 0.1);
+            transform: translateY(-2px);
+        }
+        
+        select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233A0407' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: flex-start;
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--supplementary-mist) 0%, rgba(245, 241, 238, 0.3) 100%);
+            border-radius: 12px;
+            border: 1px solid var(--supplementary-beige);
+        }
+        
+        input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            margin-top: 2px;
+            cursor: pointer;
+            flex-shrink: 0;
+            accent-color: var(--secondary-indigo);
+        }
+        
+        .checkbox-label {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+        
+        .submit-button {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--secondary-indigo) 0%, var(--secondary-light-blue) 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .submit-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .submit-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(115, 115, 227, 0.3);
+        }
+        
+        .submit-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .submit-button:active {
+            transform: translateY(-1px);
+        }
+        
+        .submit-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .error-message {
+            color: #d32f2f;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        .error-message.show {
+            display: block;
+            animation: shake 0.3s ease-in-out;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 600ordering) {
+            .container {
+                border-radius: 0;
+            }
+            
+            body {
+                padding: 0;
+            }
+            
+            .header {
+                padding: 30px 20px;
+            }
+            
+            .form-container {
+                padding: 30px 20px;
+            }
+            
+            h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <span class="logo-placeholder">LOGO</span>
+            </div>
+            <div class="sub-header">LINEからワンタップで登録完了に！</div>
+            <h1>クイックウェビナー登録申請フォーム</h1>
+            <div class="header-description">
+                このフォームに回答することで、今後のウェビナーにワンタップで登録が可能になります。
+            </div>
+        </div>
+        
+        <div class="form-container">
+            <h2 class="section-title">お申し込みはこちら</h2>
+            
+            <form id="registrationForm">
+                <div class="form-group">
+                    <label for="firstName">
+                        <span class="english-text">First Name</span>（名）
+                    </label>
+                    <input type="text" id="firstName" name="firstName" required>
+                    <div class="error-message" id="firstNameError">名を入力してください</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lastName">
+                        <span class="english-text">Last Name</span>（姓）
+                    </label>
+                    <input type="text" id="lastName" name="lastName" required>
+                    <div class="error-message" id="lastNameError">姓を入力してください</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">
+                        <span class="english-text">Email Address</span>（メールアドレス）
+                    </label>
+                    <input type="email" id="email" name="email" required>
+                    <div class="error-message" id="emailError">有効なメールアドレスを入力してください</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">
+                        <span class="english-text">Phone Number</span>（電話番号）
+                    </label>
+                    <input type="tel" id="phone" name="phone" required>
+                    <div class="error-message" id="phoneError">電話番号を入力してください</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="school">
+                        <span class="english-text">Enter student's current school</span>（学校名・ご所属をご記入ください）
+                    </label>
+                    <input type="text" id="school" name="school" required>
+                    <div class="error-message" id="schoolError">学校名・ご所属を入力してください</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="graduationYear">
+                        <span class="english-text">What year did/will you graduate from high school?</span> (高校卒業予定年)
+                    </label>
+                    <select id="graduationYear" name="graduationYear" required>
+                        <option value="">選択してください</option>
+                        <option value="2025">2025</option>
+                        <option value="2026">2026</option>
+                        <option value="2027">2027</option>
+                        <option value="2028">2028</option>
+                        <option value="2029">2029</option>
+                        <option value="2030">2030</option>
+                        <option value="2031">2031</option>
+                        <option value="2032">2032</option>
+                        <option value="2033">2033</option>
+                        <option value="2034">2034</option>
+                        <option value="2035">2035</option>
+                        <option value="2036">2036</option>
+                        <option value="2037">2037</option>
+                        <option value="2038">2038</option>
+                        <option value="2039">2039</option>
+                        <option value="2040">2040</option>
+                        <option value="Already Graduated">Already Graduated</option>
+                    </select>
+                    <div class="error-message" id="graduationYearError">卒業予定年を選択してください</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="englishLevel">
+                        <span class="english-text">English Level</span> (英語力)
+                    </label>
+                    <select id="englishLevel" name="englishLevel" required>
+                        <option value="">選択してください</option>
+                        <option value="C2">C2/Native Proficiency</option>
+                        <option value="C1">C1/Advanced (TOEFL95+/IELTS7.0/英検1級)</option>
+                        <option value="B2">B2/Upper Intermediate (TOEFL72+/IELTS5.5/英検準1級)</option>
+                        <option value="B1">B1/Intermediate (TOEFL42+/IELTS4.0+/英検2級)</option>
+                        <option value="A2">A2/Pre Intermediate (英検準2級)</option>
+                        <option value="A1">A1/Elementary (英検3級)</option>
+                        <option value="A0">A0/Elementary (英検4級以下)</option>
+                        <option value="C2">資格なし（海外在住経験あり/幼稚園がインター/帰国生）</option>
+                    </select>
+                    <div class="error-message" id="englishLevelError">英語力を選択してください</div>
+                </div>
+                
+                <div class="checkbox-group">
+                    <input type="checkbox" id="privacy" name="privacy" required>
+                    <label for="privacy" class="checkbox-label">
+                        By providing your phone number above, and pressing the "Submit" button below, you agree to receive automated text messages from Crimson, Inc. and also agree to the privacy policy（プライバシーポリシーに同意する。Crimson EducationからのSMSメッセージ受信に同意する。）
+                    </label>
+                </div>
+                <div class="error-message" id="privacyError">プライバシーポリシーに同意してください</div>
+                
+                <button type="submit" class="submit-button" id="submitBtn">
+                    送信する
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // LIFF初期化
+        const liffId = "YOUR-LIFF-ID"; // ここに実際のLIFF IDを設定してください
+        
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: liffId });
+                
+                // LIFFが正常に初期化された場合
+                if (liff.isLoggedIn()) {
+                    // プロファイル情報を取得できる場合は自動入力
+                    const profile = await liff.getProfile();
+                    // 必要に応じてフォームに自動入力
+                } else {
+                    // ログインが必要な場合
+                    liff.login();
+                }
+            } catch (error) {
+                console.error('LIFF initialization failed', error);
+                // LIFF以外でも動作するようにする
+            }
+        }
+        
+        // ページ読み込み時にLIFF初期化
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof liff !== 'undefined') {
+                initializeLiff();
+            }
+        });
+        
+        // フォーム検証
+        const form = document.getElementById('registrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            // エラーメッセージをリセット
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.classList.remove('show');
+            });
+            
+            let isValid = true;
+            
+            // 各フィールドの検証
+            const fields = [
+                { id: 'firstName', errorId: 'firstNameError' },
+                { id: 'lastName', errorId: 'lastNameError' },
+                { id: 'email', errorId: 'emailError' },
+                { id: 'phone', errorId: 'phoneError' },
+                { id: 'school', errorId: 'schoolError' },
+                { id: 'graduationYear', errorId: 'graduationYearError' },
+                { id: 'englishLevel', errorId: 'englishLevelError' }
+            ];
+            
+            fields.forEach(field => {
+                const input = document.getElementById(field.id);
+                if (!input.value.trim()) {
+                    document.getElementById(field.errorId).classList.add('show');
+                    isValid = false;
+                }
+            });
+            
+            // メールアドレスの形式検証
+            const email = document.getElementById('email').value;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (email && !emailRegex.test(email)) {
+                document.getElementById('emailError').classList.add('show');
+                isValid = false;
+            }
+            
+            // プライバシーポリシーのチェック
+            if (!document.getElementById('privacy').checked) {
+                document.getElementById('privacyError').classList.add('show');
+                isValid = false;
+            }
+            
+            if (!isValid) {
+                return;
+            }
+            
+            // ローディング表示
+            submitBtn.innerHTML = '<span class="loading"></span> 送信中...';
+            submitBtn.disabled = true;
+            
+            // フォームデータの収集
+            const formData = {
+                firstName: document.getElementById('firstName').value,
+                lastName: document.getElementById('lastName').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                school: document.getElementById('school').value,
+                graduationYear: document.getElementById('graduationYear').value,
+                englishLevel: document.getElementById('englishLevel').value,
+                privacyAccepted: document.getElementById('privacy').checked,
+                timestamp: new Date().toISOString()
+            };
+            
+            try {
+                // LIFFが利用可能な場合はLINEメッセージ送信
+                if (typeof liff !== 'undefined' && liff.isInClient()) {
+                    await liff.sendMessages([{
+                        type: 'text',
+                        text: `ウェビナー登録が完了しました！\n\n【登録情報】\n名前: ${formData.firstName} ${formData.lastName}\nメール: ${formData.email}\n学校: ${formData.school}`
+                    }]);
+                }
+                
+                // ここで実際のバックエンドAPIにデータを送信
+                // const response = await fetch('YOUR_API_ENDPOINT', {
+                //     method: 'POST',
+                //     headers: {
+                //         'Content-Type': 'application/json',
+                //     },
+                //     body: JSON.stringify(formData)
+                // });
+                
+                // 成功時の処理
+                alert('登録が完了しました！今後のウェビナーにワンタップで参加できます。');
+                
+                // LIFFウィンドウを閉じる
+                if (typeof liff !== 'undefined' && liff.isInClient()) {
+                    liff.closeWindow();
+                } else {
+                    // フォームをリセット
+                    form.reset();
+                }
+                
+            } catch (error) {
+                console.error('Submission error:', error);
+                alert('送信中にエラーが発生しました。もう一度お試しください。');
+            } finally {
+                submitBtn.innerHTML = '送信する';
+                submitBtn.disabled = false;
+            }
+        });
+        
+        // リアルタイム検証
+        document.querySelectorAll('input, select').forEach(element => {
+            element.addEventListener('blur', () => {
+                const errorId = element.id + 'Error';
+                const errorElement = document.getElementById(errorId);
+                if (errorElement) {
+                    if (!element.value.trim()) {
+                        errorElement.classList.add('show');
+                    } else {
+                        errorElement.classList.remove('show');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
