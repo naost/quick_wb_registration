@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登録完了 - クイックウェビナー登録</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- LIFF SDK -->
+    <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.0/sdk.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        :root {
+            --primary-color: #3A0407;
+            --supplementary-beige: #DAC9BB;
+            --supplementary-mist: #F5F1EE;
+        }
+        
+        @font-face {
+            font-family: 'GaramondNarrowBookITC';
+            src: local('Garamond'), local('Garamond Narrow');
+            font-weight: normal;
+            font-style: normal;
+        }
+        
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background: linear-gradient(135deg, var(--supplementary-mist) 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 20px;
+            line-height: 1.6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(58, 4, 7, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #5A0A0F 100%);
+            color: white;
+            padding: 50px 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 25px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .success-icon::before {
+            content: '✓';
+            font-size: 48px;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .logo-container {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 15px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
+        .main-message {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 15px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .sub-message {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            position: relative;
+            z-index: 1;
+            line-height: 1.6;
+        }
+        
+        .content-container {
+            padding: 50px 30px;
+            text-align: center;
+        }
+        
+        .description {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 40px;
+            line-height: 1.8;
+        }
+        
+        .close-button {
+            width: 100%;
+            max-width: 300px;
+            padding: 16px 24px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, #5A0A0F 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .close-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .close-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(58, 4, 7, 0.4);
+        }
+        
+        .close-button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .close-button:active {
+            transform: translateY(-1px);
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+                margin: 0;
+            }
+            
+            body {
+                padding: 0;
+            }
+            
+            .header {
+                padding: 40px 20px;
+            }
+            
+            .content-container {
+                padding: 40px 20px;
+            }
+            
+            .main-message {
+                font-size: 24px;
+            }
+            
+            .success-icon {
+                width: 80px;
+                height: 80px;
+            }
+            
+            .success-icon::before {
+                font-size: 36px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="success-icon"></div>
+            
+            <div class="logo-container">
+                <img src="https://a.storyblok.com/f/64062/3240x3240/0cd4bdeacb/social-account-logo.png" alt="Crimson Education Logo">
+            </div>
+            
+            <h1 class="main-message">登録完了しました！</h1>
+            <p class="sub-message">ありがとうございます。<br>画面を閉じてください。</p>
+        </div>
+        
+        <div class="content-container">
+            <p class="description">
+                クイックウェビナー登録が正常に完了いたしました。<br>
+                今後のウェビナーには、LINEから簡単にワンタップで参加いただけます。
+            </p>
+            
+            <button class="close-button" onclick="closeWindow()">
+                画面を閉じる
+            </button>
+        </div>
+    </div>
+    
+    <script>
+        // LIFF初期化（必要に応じて）
+        const liffId = "2007173778-lxg3MkX5";
+        
+        async function initializeLiff() {
+            try {
+                await liff.init({ liffId: liffId });
+            } catch (error) {
+                console.error('LIFF initialization failed', error);
+            }
+        }
+        
+        // 画面を閉じる関数
+        function closeWindow() {
+            try {
+                if (typeof liff !== 'undefined' && liff.isInClient()) {
+                    // LIFFウィンドウを閉じる
+                    liff.closeWindow();
+                } else {
+                    // 通常のブラウザの場合
+                    window.close();
+                    // window.closeが効かない場合は、前のページに戻る
+                    if (!window.closed) {
+                        window.history.back();
+                    }
+                }
+            } catch (error) {
+                console.error('Close window error:', error);
+                // エラーが発生した場合は前のページに戻る
+                window.history.back();
+            }
+        }
+        
+        // ページ読み込み時の初期化
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof liff !== 'undefined') {
+                initializeLiff();
+            }
+        });
+    </script>
+</body>
+</html>
