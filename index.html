@@ -14,6 +14,8 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.0/sdk.js"></script>
     
     <style>
+        /* スクロール動作をなめらかに（JSのsmoothと併用） */
+        html { scroll-behavior: smooth; }
         /* Student / Guardian トグル */
         .segmented { display: flex; gap: 10px; }
         .segmented input[type="radio"] { display: none; }
@@ -544,6 +546,7 @@
             });
             
             let isValid = true;
+            let scrolledToError = false; // ← 一度だけスクロールするためのフラグ
             
             // 各フィールドの検証
             const fields = [
@@ -557,11 +560,16 @@
             ];
 
             // ラジオ（Student / Guardian）の検証
-            const sgSelected = document.querySelector('input[name="studentOrGuardian"]:checked');
-            if (!sgSelected) {
-              document.getElementById('studentOrGuardianError').classList.add('show');
-              isValid = false;
-            }
+　            const sgSelected = document.querySelector('input[name="studentOrGuardian"]:checked');
+  　          if (!sgSelected) {
+　              document.getElementById('studentOrGuardianError').classList.add('show'); // 既存と同じエラー表示
+　              const sgAnchor = document.getElementById('studentGuardianGroup');       // セクション先頭へスクロール
+　              if (sgAnchor && !scrolledToError) {
+　                sgAnchor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+　                scrolledToError = true;
+　              }
+　              isValid = false;
+　            }
             
             fields.forEach(field => {
                 const input = document.getElementById(field.id);
@@ -585,9 +593,19 @@
                 isValid = false;
             }
             
-            if (!isValid) {
-                return;
-            }
+            // 最初のエラー位置へスクロール（S/Gで既にスクロールしていなければ）
+　            if (!isValid) {
+　                if (!scrolledToError) {
+　                    const firstError = document.querySelector('.error-message.show');
+　                    if (firstError) {
+　                        const target = firstError.closest('.form-group, .checkbox-group') || firstError;
+　                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+　                    } else {
+　                        window.scrollTo({ top: 0, behavior: 'smooth' });
+　                    }
+　                }
+　                return;
+　            }            
             
             // ローディング表示
             submitBtn.innerHTML = '<span class="loading"></span> 送信中...';
