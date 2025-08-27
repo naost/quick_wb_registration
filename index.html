@@ -111,10 +111,9 @@
         }
         
         .logo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 10px;
+            width: 60px;
+            height: 60px;
+            object-fit: contain;
         }
         
         .logo-placeholder {
@@ -361,7 +360,7 @@
     <div class="container">
         <div class="header">
             <div class="logo-container">
-                    <img src="https://a.storyblok.com/f/64062/3240x3240/0cd4bdeacb/social-account-logo.png" alt="Crimson Education Logo">
+                <span class="logo-placeholder">LOGO</span>
             </div>
             <div class="sub-header">LINEからワンタップで登録完了に！</div>
             <h1>クイックウェビナー登録申請フォーム</h1>
@@ -462,7 +461,7 @@
                 <div class="checkbox-group">
                     <input type="checkbox" id="privacy" name="privacy" required>
                     <label for="privacy" class="checkbox-label">
-                        By providing your phone number above, and pressing the "Submit" button below, you agree to receive automated text messages from Crimson, Inc. and also agree to <a href="https://www.crimsoneducation.org/us/privacy-policy/" target="_blank" style="color: var(--secondary-indigo); text-decoration: underline;">the privacy policy（プライバシーポリシー</a>に同意する。Crimson EducationからのSMSメッセージ受信に同意する。）
+                        By providing your phone number above, and pressing the "Submit" button below, you agree to receive automated text messages from Crimson, Inc. and also agree to the privacy policy（プライバシーポリシーに同意する。Crimson EducationからのSMSメッセージ受信に同意する。）
                     </label>
                 </div>
                 <div class="error-message" id="privacyError">プライバシーポリシーに同意してください</div>
@@ -476,7 +475,7 @@
     
     <script>
         // LIFF初期化
-        const liffId = "YOUR-LIFF-ID"; // ここに実際のLIFF IDを設定してください
+        const liffId = "2007173778-lxg3MkX5"; // ここに実際のLIFF IDを設定してください
         
         async function initializeLiff() {
             try {
@@ -581,14 +580,14 @@
                     }]);
                 }
                 
-                // ここで実際のバックエンドAPIにデータを送信
-                // const response = await fetch('YOUR_API_ENDPOINT', {
-                //     method: 'POST',
-                //     headers: {
-                //         'Content-Type': 'application/json',
-                //     },
-                //     body: JSON.stringify(formData)
-                // });
+                 ここで実際のバックエンドAPIにデータを送信
+                 const response = await fetch('https://hooks.zapier.com/hooks/catch/24101324/uhuccm8/', {
+                     method: 'POST',
+                     headers: {
+                         'Content-Type': 'application/json',
+                     },
+                     body: JSON.stringify(formData)
+                 });
                 
                 // 成功時の処理
                 alert('登録が完了しました！今後のウェビナーにワンタップで参加できます。');
