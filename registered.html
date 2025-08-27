@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ja">
 <head>
@@ -237,9 +238,8 @@
     </div>
     
     <script>
-        // LIFF初期化（必要に応じて）
+        // LIFF初期化
         const liffId = "2007173778-lxg3MkX5";
-        
         async function initializeLiff() {
             try {
                 await liff.init({ liffId: liffId });
@@ -247,55 +247,38 @@
                 console.error('LIFF initialization failed', error);
             }
         }
-        
-        // 画面を閉じる関数
-        function closeWindow() {
+
+        // ボタンから呼ぶためのラッパー
+        function sendMessageAndClose() {
+            closeWindow();
+        }
+
+        // 画面を閉じる前にユーザーからメッセージを送信（LIFF内のみ）
+        async function closeWindow() {
             try {
                 if (typeof liff !== 'undefined' && liff.isInClient()) {
-                    // LIFFウィンドウを閉じる
+                    await liff.sendMessages([
+                        { type: 'text', text: 'クイックウェビナー登録フォーム送信完了' }
+                    ]);
                     liff.closeWindow();
                 } else {
                     // 通常のブラウザの場合
                     window.close();
-                    // window.closeが効かない場合は、前のページに戻る
                     if (!window.closed) {
                         window.history.back();
                     }
                 }
             } catch (error) {
                 console.error('Close window error:', error);
-                // エラーが発生した場合は前のページに戻る
-                window.history.back();
-            }
-        }
-        // 画面を閉じる前にユーザーからメッセージを送信する（LIFF内のみ）
-        // ★関数を非同期化し、送信→クローズの順に変更
-        async function closeWindow() {
-            try {
-                if (typeof liff !== 'undefined' && liff.isInClient()) {
-                    // ★ユーザーからメッセージ送信
-                    await liff.sendMessages([
-                        { type: 'text', text: 'クイックウェビナー登録フォーム送信完了' }
-                    ]);
-                    // ★送信後にLIFFウィンドウを閉じる
-                    liff.closeWindow();
-                } else {
-                    // 通常のブラウザの場合（従来通り）
-                    window.close();
-                    if (!window.closed) {
-                        window.history.back();
-                    }
-                }
-            } catch (error) {
-                console.error('Close window error:', error);
-                // ★送信失敗時も閉じる挙動は維持
+                // 送信失敗時も閉じる挙動は維持
                 if (typeof liff !== 'undefined' && liff.isInClient()) {
                     liff.closeWindow();
                 } else {
                     window.history.back();
                 }
             }
-        }        
+        }
+
         // ページ読み込み時の初期化
         window.addEventListener('DOMContentLoaded', () => {
             if (typeof liff !== 'undefined') {
@@ -305,3 +288,4 @@
     </script>
 </body>
 </html>
+```
