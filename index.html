@@ -14,6 +14,18 @@
     <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.0/sdk.js"></script>
     
     <style>
+        /* Student / Guardian トグル */
+        .segmented { display: flex; gap: 10px; }
+        .segmented input[type="radio"] { display: none; }
+        .segmented-btn {
+          padding: 8px 14px; border: 2px solid var(--supplementary-beige);
+          border-radius: 10px; cursor: pointer; user-select: none;
+          font-weight: 600; font-size: 14px;
+        }
+        .segmented input[type="radio"]:checked + .segmented-btn {
+          background: linear-gradient(135deg, var(--secondary-indigo), var(--secondary-light-blue));
+          color: #fff; border-color: var(--secondary-light-blue);
+        }
         * {
             margin: 0;
             padding: 0;
@@ -377,6 +389,19 @@
                       action="https://hooks.zapier.com/hooks/catch/24101324/uhuccm8/"
                       method="POST">
                 <div class="form-group">
+                  <label>
+                    Are you a Student or Guardian:（保護者 or 生徒）
+                  </label>
+                  <div class="segmented" id="studentGuardianGroup">
+                    <input type="radio" id="roleStudent" name="studentOrGuardian" value="Student" required>
+                    <label for="roleStudent" class="segmented-btn">Student（生徒）</label>
+                
+                    <input type="radio" id="roleGuardian" name="studentOrGuardian" value="Guardian">
+                    <label for="roleGuardian" class="segmented-btn">Guardian（保護者）</label>
+                  </div>
+                  <div class="error-message" id="studentOrGuardianError">生徒/保護者を選択してください</div>
+                </div>
+                <div class="form-group">
                     <label for="firstName">
                         <span class="english-text">First Name</span>（名）
                     </label>
@@ -530,6 +555,13 @@
                 { id: 'graduationYear', errorId: 'graduationYearError' },
                 { id: 'englishLevel', errorId: 'englishLevelError' }
             ];
+
+            // ラジオ（Student / Guardian）の検証
+            const sgSelected = document.querySelector('input[name="studentOrGuardian"]:checked');
+            if (!sgSelected) {
+              document.getElementById('studentOrGuardianError').classList.add('show');
+              isValid = false;
+            }
             
             fields.forEach(field => {
                 const input = document.getElementById(field.id);
@@ -634,6 +666,12 @@
                     }
                 }
             });
+        });
+        // Student / Guardian 変更時にエラー非表示
+        document.querySelectorAll('input[name="studentOrGuardian"]').forEach(el => {
+          el.addEventListener('change', () => {
+            document.getElementById('studentOrGuardianError').classList.remove('show');
+          });
         });
     </script>
 </body>
