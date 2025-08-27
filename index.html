@@ -111,9 +111,10 @@
         }
         
         .logo-container img {
-            width: 60px;
-            height: 60px;
-            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 10px;
         }
         
         .logo-placeholder {
@@ -360,7 +361,7 @@
     <div class="container">
         <div class="header">
             <div class="logo-container">
-                <span class="logo-placeholder">LOGO</span>
+                    <img src="https://a.storyblok.com/f/64062/3240x3240/0cd4bdeacb/social-account-logo.png" alt="Crimson Education Logo">
             </div>
             <div class="sub-header">LINEからワンタップで登録完了に！</div>
             <h1>クイックウェビナー登録申請フォーム</h1>
@@ -461,7 +462,7 @@
                 <div class="checkbox-group">
                     <input type="checkbox" id="privacy" name="privacy" required>
                     <label for="privacy" class="checkbox-label">
-                        By providing your phone number above, and pressing the "Submit" button below, you agree to receive automated text messages from Crimson, Inc. and also agree to the privacy policy（プライバシーポリシーに同意する。Crimson EducationからのSMSメッセージ受信に同意する。）
+                        By providing your phone number above, and pressing the "Submit" button below, you agree to receive automated text messages from Crimson, Inc. and also agree to <a href="https://www.crimsoneducation.org/us/privacy-policy/" target="_blank" style="color: var(--secondary-indigo); text-decoration: underline;">the privacy policy（プライバシーポリシー</a>に同意する。Crimson EducationからのSMSメッセージ受信に同意する。）
                     </label>
                 </div>
                 <div class="error-message" id="privacyError">プライバシーポリシーに同意してください</div>
