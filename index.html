@@ -390,20 +390,6 @@
             <form id="registrationForm"
                       action="https://hooks.zapier.com/hooks/catch/24101324/uhuccm8/"
                       method="POST">
-                <div class="form-group">
-                  <label>
-                    Are you a Student or Guardian:（保護者 or 生徒）
-                  </label>
-                  <div class="segmented" id="studentGuardianGroup">
-                    <input type="radio" id="roleStudent" name="studentOrGuardian" value="Student" required>
-                    <label for="roleStudent" class="segmented-btn">Student（生徒）</label>
-                
-                    <input type="radio" id="roleGuardian" name="studentOrGuardian" value="Guardian">
-                    <label for="roleGuardian" class="segmented-btn">Guardian（保護者）</label>
-                  </div>
-                  <div class="error-message" id="studentOrGuardianError">生徒/保護者を選択してください</div>
-                </div>
-                <div class="form-group">
                     <label for="firstName">
                         <span class="english-text">First Name</span>（名）
                     </label>
@@ -487,7 +473,22 @@
                     </select>
                     <div class="error-message" id="englishLevelError">英語力を選択してください</div>
                 </div>
+        
+                <div class="form-group">
+                  <label>
+                    Are you a Student or Guardian:（保護者 or 生徒）
+                  </label>
+                  <div class="segmented" id="studentGuardianGroup">
+                    <input type="radio" id="roleStudent" name="studentOrGuardian" value="Student" required>
+                    <label for="roleStudent" class="segmented-btn">Student（生徒）</label>
                 
+                    <input type="radio" id="roleGuardian" name="studentOrGuardian" value="Guardian">
+                    <label for="roleGuardian" class="segmented-btn">Guardian（保護者）</label>
+                  </div>
+                  <div class="error-message" id="studentOrGuardianError">生徒/保護者を選択してください</div>
+                </div>
+                <div class="form-group">
+
                 <div class="checkbox-group">
                     <input type="checkbox" id="privacy" name="privacy" required>
                     <label for="privacy" class="checkbox-label">
