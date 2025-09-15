@@ -129,8 +129,25 @@
 
         //  CORS回避: application/json ヘッダーを外すため FormData を使用（preflightを発生させない）
         const form = new FormData();
-        form.append("webinar_id", webinarId);
-        form.append("line_user_id", lineUserId);
+        // 互換フィールド（参考実装と同様に FormData で送信）
+        form.append("webinar_id", webinarId);     // 要件のキー名
+        form.append("wb", webinarId);             // 参考実装に寄せた別名（保険）
+        form.append("line_user_id", lineUserId);  // スネークケース（保険）
+        form.append("lineUserId", lineUserId);    // キャメルケース（参考実装）
+        // 参考実装にならい、取得できたら付与（Zap 側で任意利用）
+        try {
+          const p = await liff.getProfile();
+          if (p) {
+            if (p.displayName) form.append("lineDisplayName", p.displayName);
+            if (p.pictureUrl)  form.append("linePictureUrl", p.pictureUrl);
+          }
+        } catch {}
+        try {
+          const idToken = (typeof liff.getIDToken === 'function') ? liff.getIDToken() : null;
+          if (idToken) form.append("lineIdToken", idToken);
+          const decoded = (typeof liff.getDecodedIDToken === 'function') ? liff.getDecodedIDToken() : null;
+          if (decoded?.sub) form.append("lineSub", decoded.sub);
+        } catch {}
         form.append("ts", new Date().toISOString());
 
         const res = await fetch(ZAP_HOOK, {
