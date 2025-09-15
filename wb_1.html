@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ウェビナー登録（LIFF）</title>
+  <!-- LIFF SDK -->
+  <script src="https://static.line-scdn.net/liff/edge/versions/2.22.0/sdk.js" charset="utf-8"></script>
+  <style>
+    :root { --bg:#f6f6f8; --card:#fff; --ink:#222; --muted:#6b7280; --brand:#0ea5e9; --brand-ink:#fff; }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: system-ui, -apple-system, "Noto Sans JP", Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji"; background:var(--bg); color:var(--ink); }
+    .wrap { max-width: 560px; margin: 0 auto; padding: 24px; }
+    .card { background:var(--card); border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,.06); padding: 24px; }
+    h1 { font-size: 18px; margin: 0 0 8px; }
+    p { margin: 0 0 16px; color: var(--muted); }
+    .pill { display:inline-flex; align-items:center; gap:8px; font-size:12px; background:#eef6ff; color:#0369a1; padding:6px 10px; border-radius:999px; }
+    .row { display:flex; gap:12px; margin-top: 16px; }
+    button { flex:1; padding: 14px 16px; border-radius: 12px; border: 1px solid #e5e7eb; background:#fff; cursor:pointer; font-weight:600; }
+    button.primary { background: var(--brand); color: var(--brand-ink); border-color: transparent; }
+    button:disabled { opacity:.7; cursor:not-allowed; }
+    .status { margin-top:14px; font-size:14px; color: var(--muted); white-space: pre-line; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>このウェビナーに登録する</h1>
+      <p id="wbInfo" class="pill">webinar_id: <span id="wbid">(未指定)</span></p>
+
+      <div class="row">
+        <button id="registerBtn" class="primary">登録</button>
+        <button id="closeBtn">閉じる</button>
+      </div>
+      <div id="status" class="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script>
+    // ====== 設定 ======
+    const LIFF_ID = "2007173778-lxg3MkX5"; // 必要なら置き換え
+    const ZAP_HOOK = "https://hooks.zapier.com/hooks/catch/24101324/uhrtwzf/"; // 送信先
+
+    // ====== ユーティリティ ======
+    const qs = new URL(location.href).searchParams;
+    let webinarId = qs.get("webinar_id") || "";
+    const byId = (id) => document.getElementById(id);
+    const statusEl = byId("status");
+
+    function showStatus(msg) {
+      statusEl.textContent = msg;
+    }
+
+    // 表示用 webinar_id
+    const wbidEl = byId("wbid");
+    wbidEl.textContent = webinarId || "(未指定)";
+
+    // ====== LIFF 初期化 ======
+    (async function init() {
+      try {
+        await liff.init({ liffId: LIFF_ID });
+        if (!liff.isLoggedIn()) {
+          // ログイン後も webinar_id を保持
+          liff.login({ redirectUri: location.href });
+          return; // ここで終了（戻ってきたら続行）
+        }
+      } catch (e) {
+        showStatus("LIFF の初期化に失敗しました: " + (e?.message || e));
+      }
+    })();
+
+    // ====== 登録ボタン ======
+    byId("registerBtn").addEventListener("click", async () => {
+      try {
+        if (!webinarId) {
+          alert("webinar_id がURLに含まれていません。\n例: ...?webinar_id=WB12345");
+          return;
+        }
+
+        // 送信中 UI
+        const btn = byId("registerBtn");
+        btn.disabled = true; btn.textContent = "送信中...";
+        showStatus("");
+
+        // LINE ユーザー ID の取得
+        let lineUserId = "";
+        try {
+          const profile = await liff.getProfile();
+          lineUserId = profile?.userId || "";
+        } catch {}
+        if (!lineUserId && typeof liff.getDecodedIDToken === "function") {
+          const decoded = liff.getDecodedIDToken();
+          lineUserId = decoded?.sub || ""; // フォールバック
+        }
+        if (!lineUserId) throw new Error("LINE のユーザーIDを取得できませんでした（友だち追加/ログイン要）。");
+
+        // Webhook 送信
+        const payload = {
+          webinar_id: webinarId,
+          line_user_id: lineUserId,
+          // 任意: デバッグに役立つメタ
+          liff_context: (liff.getContext && liff.getContext()) || null,
+          ts: new Date().toISOString()
+        };
+
+        const res = await fetch(ZAP_HOOK, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        if (!res.ok) throw new Error("Webhook 送信に失敗しました (HTTP " + res.status + ")");
+
+        showStatus("登録リクエストを送信しました。\nwebinar_id=" + webinarId + "\nline_user_id=" + lineUserId);
+        btn.textContent = "登録済み";
+      } catch (err) {
+        showStatus("エラー: " + (err?.message || err));
+      } finally {
+        byId("registerBtn").disabled = false;
+        byId("registerBtn").textContent = "登録";
+      }
+    });
+
+    // ====== 閉じるボタン ======
+    byId("closeBtn").addEventListener("click", () => {
+      try {
+        if (liff.isInClient()) { liff.closeWindow(); return; }
+      } catch {}
+      // ブラウザでのフォールバック
+      window.close();
+    });
+  </script>
+</body>
+</html>
