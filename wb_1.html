@@ -127,32 +127,31 @@
           throw new Error("LINE のユーザーIDを取得できませんでした（LINE アプリ内で開いてログイン/友だち追加が必要）。");
         }
 
-        //  CORS回避: application/json ヘッダーを外すため FormData を使用（preflightを発生させない）
-        const form = new FormData();
-        // 互換フィールド（参考実装と同様に FormData で送信）
-        form.append("webinar_id", webinarId);     // 要件のキー名
-        form.append("wb", webinarId);             // 参考実装に寄せた別名（保険）
-        form.append("line_user_id", lineUserId);  // スネークケース（保険）
-        form.append("lineUserId", lineUserId);    // キャメルケース（参考実装）
-        // 参考実装にならい、取得できたら付与（Zap 側で任意利用）
+        // JSON で送信（preflight が発生します）
+        const payload = {
+          webinar_id: webinarId,   // 要件のキー名
+          wb: webinarId,           // 互換キー（必要なら削除可）
+          line_user_id: lineUserId,
+          lineUserId: lineUserId,  // 互換キー（必要なら削除可）
+          ts: new Date().toISOString()
+        };
+        // 取得できた情報を任意で付与（Zap 側で使用したい場合のみ）
         try {
           const p = await liff.getProfile();
-          if (p) {
-            if (p.displayName) form.append("lineDisplayName", p.displayName);
-            if (p.pictureUrl)  form.append("linePictureUrl", p.pictureUrl);
-          }
+          if (p?.displayName) payload.lineDisplayName = p.displayName;
+          if (p?.pictureUrl)  payload.linePictureUrl  = p.pictureUrl;
         } catch {}
         try {
           const idToken = (typeof liff.getIDToken === 'function') ? liff.getIDToken() : null;
-          if (idToken) form.append("lineIdToken", idToken);
+          if (idToken) payload.lineIdToken = idToken;
           const decoded = (typeof liff.getDecodedIDToken === 'function') ? liff.getDecodedIDToken() : null;
-          if (decoded?.sub) form.append("lineSub", decoded.sub);
+          if (decoded?.sub) payload.lineSub = decoded.sub;
         } catch {}
-        form.append("ts", new Date().toISOString());
 
         const res = await fetch(ZAP_HOOK, {
           method: "POST",
-          body: form // ← ヘッダー未指定（ブラウザが multipart/form-data を自動付与）
+          headers: { "Content-Type": "application/json; charset=UTF-8" },
+          body: JSON.stringify(payload)
         });
 
         const text = await res.text();
