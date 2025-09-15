@@ -127,16 +127,15 @@
           throw new Error("LINE のユーザーIDを取得できませんでした（LINE アプリ内で開いてログイン/友だち追加が必要）。");
         }
 
-        const payload = {
-          webinar_id: webinarId,
-          line_user_id: lineUserId,
-          ts: new Date().toISOString()
-        };
+        //  CORS回避: application/json ヘッダーを外すため FormData を使用（preflightを発生させない）
+        const form = new FormData();
+        form.append("webinar_id", webinarId);
+        form.append("line_user_id", lineUserId);
+        form.append("ts", new Date().toISOString());
 
         const res = await fetch(ZAP_HOOK, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: form // ← ヘッダー未指定（ブラウザが multipart/form-data を自動付与）
         });
 
         const text = await res.text();
