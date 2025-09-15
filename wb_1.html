@@ -47,6 +47,9 @@
     let webinarId = qs.get("webinar_id") || qs.get("wb") || "";
     const byId = (id) => document.getElementById(id);
     const statusEl = byId("status");
+    const registerBtn = byId("registerBtn");
+    // 初期状態では無効化（LIFF初期化/ログイン/ID取得完了後に有効化）
+    registerBtn.disabled = true;
 
     function showStatus(msg) {
       statusEl.textContent = msg;
@@ -61,10 +64,36 @@
       try {
         await liff.init({ liffId: LIFF_ID });
         if (!liff.isLoggedIn()) {
-          // ログイン後も webinar_id を保持
+          // ログイン後もパラメータを保持
           liff.login({ redirectUri: location.href });
-          return; // ここで終了（戻ってきたら続行）
+          return;
         }
+
+        // LIFF 準備完了待ち
+        if (liff.ready && typeof liff.ready.then === "function") {
+          await liff.ready;
+        }
+
+        // LINE ユーザーIDの先取り取得
+        let lineUserId = "";
+        try {
+          const profile = await liff.getProfile();
+          lineUserId = profile?.userId || "";
+        } catch (e) { /* no-op */ }
+        if (!lineUserId && typeof liff.getDecodedIDToken === "function") {
+          const decoded = liff.getDecodedIDToken();
+          lineUserId = decoded?.sub || ""; // フォールバック
+        }
+
+        if (!lineUserId) {
+          showStatus("LINE のユーザーIDを取得できませんでした。LINE アプリ内で開き、ログイン/友だち追加をご確認ください。");
+        } else {
+          window.__LINE_USER_ID__ = lineUserId; // クリック時に再利用
+          showStatus("準備完了: line_user_id を取得しました。");
+        }
+
+        // webinar_id と line_user_id が取れていれば有効化
+        registerBtn.disabled = !(webinarId && (window.__LINE_USER_ID__ || lineUserId));
       } catch (e) {
         showStatus("LIFF の初期化に失敗しました: " + (e?.message || e));
       }
@@ -74,34 +103,33 @@
     byId("registerBtn").addEventListener("click", async () => {
       try {
         if (!webinarId) {
-          alert("webinar_id がURLに含まれていません。
-例: ...?webinar_id=WB12345 または ...?wb=WB12345");
+          alert("webinar_id がURLに含まれていません。\n例: ...?webinar_id=WB12345 または ...?wb=WB12345");
           return;
         }
 
-        // 送信中 UI
-        const btn = byId("registerBtn");
+        const btn = registerBtn;
         btn.disabled = true; btn.textContent = "送信中...";
         showStatus("");
 
-        // LINE ユーザー ID の取得
-        let lineUserId = "";
-        try {
-          const profile = await liff.getProfile();
-          lineUserId = profile?.userId || "";
-        } catch {}
-        if (!lineUserId && typeof liff.getDecodedIDToken === "function") {
-          const decoded = liff.getDecodedIDToken();
-          lineUserId = decoded?.sub || ""; // フォールバック
+        // 事前取得したIDを使用（なければ最後に再取得を試みる）
+        let lineUserId = window.__LINE_USER_ID__ || "";
+        if (!lineUserId) {
+          try {
+            const profile = await liff.getProfile();
+            lineUserId = profile?.userId || "";
+          } catch {}
+          if (!lineUserId && typeof liff.getDecodedIDToken === "function") {
+            const decoded = liff.getDecodedIDToken();
+            lineUserId = decoded?.sub || "";
+          }
         }
-        if (!lineUserId) throw new Error("LINE のユーザーIDを取得できませんでした（友だち追加/ログイン要）。");
+        if (!lineUserId) {
+          throw new Error("LINE のユーザーIDを取得できませんでした（LINE アプリ内で開いてログイン/友だち追加が必要）。");
+        }
 
-        // Webhook 送信
         const payload = {
           webinar_id: webinarId,
           line_user_id: lineUserId,
-          // 任意: デバッグに役立つメタ
-          liff_context: (liff.getContext && liff.getContext()) || null,
           ts: new Date().toISOString()
         };
 
@@ -110,15 +138,18 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload)
         });
-        if (!res.ok) throw new Error("Webhook 送信に失敗しました (HTTP " + res.status + ")");
 
-        showStatus("登録リクエストを送信しました。\nwebinar_id=" + webinarId + "\nline_user_id=" + lineUserId);
+        const text = await res.text();
+        if (!res.ok) {
+          throw new Error("Webhook 送信失敗 HTTP " + res.status + " / " + text.slice(0,120));
+        }
+
+        showStatus("送信成功: " + text.slice(0,180) + (text.length>180?"…":""));
         btn.textContent = "登録済み";
       } catch (err) {
         showStatus("エラー: " + (err?.message || err));
-      } finally {
-        byId("registerBtn").disabled = false;
-        byId("registerBtn").textContent = "登録";
+        registerBtn.disabled = false;
+        registerBtn.textContent = "登録";
       }
     });
 
