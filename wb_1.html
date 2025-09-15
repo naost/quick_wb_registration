@@ -44,7 +44,7 @@
 
     // ====== ユーティリティ ======
     const qs = new URL(location.href).searchParams;
-    let webinarId = qs.get("webinar_id") || "";
+    let webinarId = qs.get("webinar_id") || qs.get("wb") || "";
     const byId = (id) => document.getElementById(id);
     const statusEl = byId("status");
 
@@ -74,7 +74,8 @@
     byId("registerBtn").addEventListener("click", async () => {
       try {
         if (!webinarId) {
-          alert("webinar_id がURLに含まれていません。\n例: ...?webinar_id=WB12345");
+          alert("webinar_id がURLに含まれていません。
+例: ...?webinar_id=WB12345 または ...?wb=WB12345");
           return;
         }
 
