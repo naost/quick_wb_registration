@@ -635,17 +635,16 @@
         marketoLeadBody: {
           source: 'Crimson Website',
           reason: 'Filled side form',
-          lookupField: 'email', // lINEUUID で照合したい場合は 'lINEUUID' に変更
+          lookupField: 'Email', // lINEUUID で照合したい場合は 'lINEUUID' に変更
           input: [{
             lINEUUID: lineuuid || '',
             mkt_utm_medium__c: 'organic_line',
             mkt_utm_source__c: 'o_social',
             mkt_utm_content__c: 'line_quick_wb_menu',
-
-            email,
-            firstName,
-            lastName,
-            phone,
+            email: email,
+            firstName: firstName ,
+            lastName: lastName,
+            phone: phone,
             High_School_Graduation_Year__c: graduationYear,
             Student_English_Level__c: englishLevel,
             person_type__c: personType,
