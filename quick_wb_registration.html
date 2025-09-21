@@ -612,7 +612,7 @@
       const personType     = (document.querySelector('input[name="studentOrGuardian"]:checked')?.value || '').trim();
       const privacyAccepted = document.getElementById('privacy').checked;
 
-      // URL クエリから wb / lineid を取得（?wb=...&lineid=...）
+      // URL クエリから  / lineid を取得（?&lineid=...）
       const sp = new URLSearchParams((location && location.search) || '');
       let lineuuid = sp.get('lineid') || '';
 
@@ -628,12 +628,6 @@
         }
       }
 
-      if (!wb) {
-        alert('URL に ?wb=PROGRAM_NAME を付けてアクセスしてください。');
-        submitBtn.innerHTML = '送信する';
-        submitBtn.disabled = false;
-        return;
-      }
 
       // code1 準拠 payload（Marketo 送信用の形をそのまま）
       const payload = {
