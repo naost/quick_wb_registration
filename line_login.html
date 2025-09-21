@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LIFF 自動ログイン＆リダイレクト</title>
+  <meta name="robots" content="noindex">
+  <style>body{margin:0;font:14px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;background:#fafafa}</style>
+</head>
+<body>
+  <noscript>JavaScript が無効です。LIFF は動作しません。</noscript>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ====== 設定 ======
+    const LIFF_ID = "2007173778-lxg3MkX5";  // ご指定の LIFF ID
+    const THANKYOU_URL = "https://www.crimsoneducation.org/ja/thank-you/line-ty";
+    const SS_Q1_KEY = "wb_q1_buf";          // q1 一時保存キー
+
+    // ====== ユーティリティ ======
+    function loadScript(src){
+      return new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = src; s.async = true;
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('SDK load error: ' + src));
+        document.head.appendChild(s);
+      });
+    }
+
+    window.addEventListener('error', e => console.error('[window.error]', e.message || String(e)));
+    window.addEventListener('unhandledrejection', e => console.error('[unhandledrejection]', e.reason?.message || String(e)));
+
+    (async function main(){
+      console.log('[LIFF] start at', location.href);
+
+      // 1) URL クエリから q1 を取得して一時保存（戻ってきた後にクエリが消えるため）
+      const params = new URLSearchParams(location.search);
+      const q1 = params.get('q1');
+      if (q1) {
+        sessionStorage.setItem(SS_Q1_KEY, q1);
+        console.log('[LIFF] stash q1 -> sessionStorage:', q1);
+      } else {
+        console.log('[LIFF] no q1 in query; current stash =', sessionStorage.getItem(SS_Q1_KEY));
+      }
+
+      // 2) SDK 読み込み
+      await loadScript('https://static.line-scdn.net/liff/edge/2/sdk.js');
+      console.log('[LIFF] SDK loaded');
+
+      // 3) init
+      await liff.init({ liffId: LIFF_ID });
+      console.log('[LIFF] init OK; isLoggedIn =', liff.isLoggedIn());
+
+      // 4) 未ログインならログイン開始（redirectUri はクエリ無しに固定）
+      if (!liff.isLoggedIn()) {
+        const cleanRedirect = location.origin + location.pathname; // ← クエリ無し
+        console.log('[LIFF] login redirectUri =', cleanRedirect);
+        liff.login({ redirectUri: cleanRedirect });
+        return; // 以降は認可後のリダイレクトで再実行
+      }
+
+      // 5) ログイン済み → profile 取得
+      const profile = await liff.getProfile();
+      console.log('[LIFF] got profile userId =', profile.userId);
+
+      // 6) q1 を復元して TY へ渡す（wb として）
+      const q1Restored = sessionStorage.getItem(SS_Q1_KEY) || '';
+      const dest = new URL(THANKYOU_URL);
+      dest.searchParams.set('lineid', profile.userId);
+      if (q1Restored) dest.searchParams.set('wb', q1Restored);
+
+      // 7) 後始末して遷移（replace で戻るボタン無限ループを防止）
+      sessionStorage.removeItem(SS_Q1_KEY);
+      console.log('[LIFF] redirect ->', dest.toString());
+      location.replace(dest.toString());
+    })().catch(err => {
+      console.error('[LIFF] fatal', err && (err.message || err));
+    });
+
+  })();
+  </script>
+</body>
+</html>
