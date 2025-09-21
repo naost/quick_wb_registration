@@ -1,110 +1,93 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>LIFF リダイレクト中継 → TY</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LIFF 外部ファイルテスト</title>
   <style>
-    body{font:14px/1.6 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; padding:20px; background:#fafafa}
-    #log{border:1px solid #e5e7eb; background:#fff; border-radius:8px; padding:12px; min-height:120px; white-space:pre-wrap}
-    button{margin-top:12px; padding:8px 12px; border:1px solid #ccc; border-radius:6px; background:#f8fafc; cursor:pointer}
+    body { font:14px/1.6 system-ui, sans-serif; padding:20px; background:#fafafa; }
+    #log { border:2px solid red; padding:12px; min-height:120px; background:#fff; white-space:pre-wrap; }
+    button { margin-top:12px; padding:8px 12px; border:1px solid #ccc; border-radius:6px; }
   </style>
 </head>
 <body>
-  <h2>LIFF ログイン → 中継 → TY</h2>
-  <div id="log">[ログ]</div>
-  <div style="margin-top:8px">
-    <button id="btnLogin">LINE にログイン</button>
-    <button id="btnLogout">ログアウト</button>
-  </div>
+  <h2>外部ファイル LIFF テスト</h2>
+  <div id="log">[ここにログが出ます]</div>
+  <button id="btnInit">LIFF 初期化</button>
+  <button id="btnLogin">LINE にログイン</button>
+  <button id="btnLogout">ログアウト</button>
 
   <script>
-  (async () => {
+  (function(){
     const LIFF_ID = "2007173778-2MXG8mQY";
     const THANKYOU_URL = "https://www.crimsoneducation.org/ja/thank-you/line-ty";
-    const SS_Q1_KEY = "wb_q1_buf";        // q1 を一時保存するキー
-    const SS_RET_KEY = "wb_return_buf";   // 返って来る URL（保険）
-
     const logEl = document.getElementById("log");
-    const log = (m) => { logEl.textContent += (logEl.textContent==="[ログ]"?"\n":"") + m; console.log(m); };
+    const log = msg => { logEl.textContent += "\\n" + msg; console.log(msg); };
 
-    // 現在のクエリから q1 を取得（初回アクセス時）
-    const params = new URLSearchParams(location.search);
-    const q1FromUrl = params.get("q1") || "";
+    // URLクエリから q1 を取得
+    const urlParams = new URLSearchParams(location.search);
+    const q1 = urlParams.get("q1") || "";
 
-    // 返ってくる先は「同一オリジン & 同一パス（クエリなし）」に固定
-    const CLEAN_REDIRECT = location.origin + location.pathname;
-
-    // 初回アクセスで q1 があれば保存（リダイレクト往復用）
-    if (q1FromUrl) {
-      sessionStorage.setItem(SS_Q1_KEY, q1FromUrl);
-      sessionStorage.setItem(SS_RET_KEY, CLEAN_REDIRECT);
+    async function loadScript(src){
+      return new Promise((resolve,reject)=>{
+        const s=document.createElement("script");
+        s.src=src; s.async=true;
+        s.onload=resolve;
+        s.onerror=()=>reject(new Error("SDK load error"));
+        document.head.appendChild(s);
+      });
     }
 
-    // ── SDK 読み込み
-    await new Promise((res, rej) => {
-      const s = document.createElement("script");
-      s.src = "https://static.line-scdn.net/liff/edge/2/sdk.js";
-      s.async = true;
-      s.onload = res;
-      s.onerror = () => rej(new Error("LIFF SDK load error"));
-      document.head.appendChild(s);
-    });
-    log("✅ SDK loaded");
+    async function initLiff(){
+      try{
+        await loadScript("https://static.line-scdn.net/liff/edge/2/sdk.js");
+        log("✅ SDK loaded");
+        await liff.init({ liffId: LIFF_ID });
+        log("✅ liff.init OK");
+        log("isLoggedIn=" + liff.isLoggedIn());
 
-    // ── init
-    try {
-      await liff.init({ liffId: LIFF_ID });
-      log("✅ liff.init OK (loggedIn=" + liff.isLoggedIn() + ")");
-    } catch (e) {
-      log("❌ init error: " + (e.message || e));
-      return;
-    }
-
-    // ログイン済みならそのまま TY へ中継
-    if (liff.isLoggedIn()) {
-      await goThankYou();
-    }
-
-    // ボタン動作
-    document.getElementById("btnLogin").onclick = () => {
-      try {
-        // redirectUri はクエリ無しの同一パスに固定
-        log("→ login redirectUri = " + CLEAN_REDIRECT);
-        liff.login({ redirectUri: CLEAN_REDIRECT });
-      } catch (e) {
-        log("login error: " + (e.message || e));
+        if (liff.isLoggedIn()){
+          await afterLogin();
+        }
+      }catch(e){
+        log("❌ init error: " + (e.message||e));
       }
+    }
+
+    async function afterLogin(){
+      try{
+        const profile = await liff.getProfile();
+        log("✅ got profile: " + profile.userId);
+
+        // lineid と q1 を thank-you ページへ渡す
+        const redirectUrl = new URL(THANKYOU_URL);
+        redirectUrl.searchParams.set("lineid", profile.userId);
+        if (q1) redirectUrl.searchParams.set("wb", q1);
+
+        log("➡ redirect to " + redirectUrl.toString());
+        location.href = redirectUrl.toString();
+      }catch(e){
+        log("❌ profile error: " + (e.message||e));
+      }
+    }
+
+    document.getElementById("btnInit").onclick = initLiff;
+    document.getElementById("btnLogin").onclick = () => {
+      try{
+        liff.login({ redirectUri: location.href });
+        log("→ liff.login 呼び出し");
+      }catch(e){ log("login error: " + (e.message||e)); }
     };
     document.getElementById("btnLogout").onclick = () => {
-      try { liff.logout(); location.reload(); } catch (e) { log("logout error: " + (e.message || e)); }
+      try{
+        liff.logout();
+        log("→ logout 呼び出し / 再読み込みしてください");
+      }catch(e){ log("logout error: " + (e.message||e)); }
     };
 
-    // ログイン後に呼ばれ、lineid と q1(wb) を TY へ受け渡してリダイレクト
-    async function goThankYou() {
-      try {
-        const prof = await liff.getProfile();
-        const lineId = prof.userId;
-
-        // q1 を復元（URLに残っていればそれを優先、なければ sessionStorage）
-        const q1 = (new URLSearchParams(location.search).get("q1")) 
-                    || sessionStorage.getItem(SS_Q1_KEY) 
-                    || "";
-
-        const url = new URL(THANKYOU_URL);
-        url.searchParams.set("lineid", lineId);
-        if (q1) url.searchParams.set("wb", q1);
-
-        // 使い終えたら掃除
-        sessionStorage.removeItem(SS_Q1_KEY);
-        sessionStorage.removeItem(SS_RET_KEY);
-
-        log("➡ redirect to: " + url.toString());
-        location.href = url.toString();
-      } catch (e) {
-        log("❌ profile error: " + (e.message || e));
-      }
-    }
+    // ページ読み込み時に基本情報
+    log("location.href = " + location.href);
+    log("q1 = " + q1);
   })();
   </script>
 </body>
