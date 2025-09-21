@@ -614,7 +614,6 @@
 
       // URL クエリから wb / lineid を取得（?wb=...&lineid=...）
       const sp = new URLSearchParams((location && location.search) || '');
-      const wb = sp.get('wb') || sp.get('programName') || '';
       let lineuuid = sp.get('lineid') || '';
 
       // LIFF プロファイルからのフォールバック
@@ -638,9 +637,8 @@
 
       // code1 準拠 payload（Marketo 送信用の形をそのまま）
       const payload = {
-        munchkinId: 'id:039-NBM-750&token:_mch-crimsoneducation.org-28f3fc5bc3ea3ac724756fb3e997ed94',
+        munchkinId: 'id:039-NBM-750',
         marketoLeadBody: {
-          programName: wb,
           source: 'Crimson Website',
           reason: 'Filled side form',
           lookupField: 'email', // lINEUUID で照合したい場合は 'lINEUUID' に変更
