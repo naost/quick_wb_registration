@@ -1,0 +1,11 @@
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+<script>
+(async () => {
+  await liff.init({ liffId: "2007173778-oD2Wx7BE" });
+  const u = new URL(location.href);
+  const zoomUrl = u.searchParams.get("u"); // 例: https://zoom.us/w/1234567890?tk=...&uuid=...
+
+  // まずはユニバーサルリンクを**外部ブラウザ**で開く
+  liff.openWindow({ url: zoomUrl, external: true });
+})();
+</script>
