@@ -93,34 +93,48 @@
 
   <script>
     (async () => {
-      // ====== 1) LIFF 初期化 ======
-      try {
-        await liff.init({ liffId: "2007173778-oD2Wx7BE" });
-      } catch (e) {
-        console.error("LIFF init error:", e);
-      }
+      // ===== 0) クエリ取得 & Zoom URL 構築（最優先で実行） =====
+      const url = new URL(location.href);
+      const q = (k) => url.searchParams.get(k);
 
-      // ====== 2) クエリ取得 & Zoom ウェビナーURL生成 ======
-      const u = new URL(location.href);
-      const q = (k) => u.searchParams.get(k);
+      const confno = (q("id") || "").trim();
+      const tk     = q("tk");
+      const uuid   = q("uuid");
 
-      const confno = (q("id") || "").trim();     // 例: 91543957037
-      const tk     = q("tk");                    // 例: AzpJ...
-      const uuid   = q("uuid");                  // 例: WN_...
-
-      // https://zoom.us/w/{id}?tk=...&uuid=...
       let zoomUrl = "";
       if (confno) {
         zoomUrl = `https://zoom.us/w/${encodeURIComponent(confno)}`;
         const sp = new URLSearchParams();
-        if (tk)   sp.set("tk",   tk);
+        if (tk)   sp.set("tk", tk);
         if (uuid) sp.set("uuid", uuid);
         const qs = sp.toString();
         if (qs) zoomUrl += `?${qs}`;
       }
       const FALLBACK_URL = "https://www.crimsoneducation.org/ja";
+      const targetUrl = zoomUrl || FALLBACK_URL;
 
-      // ====== 3) 画像セット（指定がなければ Storyblok 既定） ======
+      // ===== 0.5) UA が LINE でなければ即リダイレクト =====
+      // LINE in-app browser の UA には "Line" or "LINE" が含まれます。LIFF環境でもUAに"Line"が入るのが一般的。
+      const ua = navigator.userAgent || "";
+      const isLineUA = /\bLine\b/i.test(ua) || /\bLIFF\b/i.test(ua);
+      if (!isLineUA) {
+        // 通常ブラウザ：そのままZoom（またはFallback）へ
+        try { window.location.replace(targetUrl); }
+        catch { window.location.href = targetUrl; }
+        return; // 以降のストーリーUIは実行しない
+      }
+
+      // ===== 1) LIFF 初期化（LINE 内のみ） =====
+      try {
+        await liff.init({ liffId: "2007173778-oD2Wx7BE" });
+      } catch (e) {
+        console.error("LIFF init error:", e);
+        // LIFF初期化に失敗した場合も即リダイレクトでフォールバック
+        try { window.location.replace(targetUrl); } catch { window.location.href = targetUrl; }
+        return;
+      }
+
+      // ===== 2) 画像セット（指定がなければ Storyblok 既定） =====
       const images = [
         q("img1") || "https://a.storyblok.com/f/64062/1080x1920/a4cfd8581e/how_to_open_zoom_1.jpg",
         q("img2") || "https://a.storyblok.com/f/64062/1080x1920/ac096ea302/how_to_open_zoom_2.jpg",
@@ -134,7 +148,7 @@
         const im = new Image(); im.src = src;
       });
 
-      // ====== 4) スライド制御 ======
+      // ===== 3) スライド制御 =====
       const slidesEl = document.getElementById("slides");
       const dotBars = Array.from(document.querySelectorAll(".dot > b"));
       const hints = document.getElementById("hint");
@@ -144,25 +158,22 @@
       let didRedirect = false;
 
       function openWebinar() {
-        const target = zoomUrl || FALLBACK_URL; // confno 未指定時は Crimson に退避
         try {
           if (typeof liff !== "undefined" && liff.isInClient && liff.isInClient()) {
-            // LINE内 → 外部ブラウザ
-            liff.openWindow({ url: target, external: true });
+            // LINE内 → 外部ブラウザでZoomを開く
+            liff.openWindow({ url: targetUrl, external: true });
           } else {
-            // 通常ブラウザ
-            window.location.replace(target);
+            // 念のため
+            window.location.replace(targetUrl);
           }
         } catch (e) {
-          // 何かあれば通常遷移でフォールバック
-          window.location.href = target;
+          window.location.href = targetUrl;
         }
       }
 
       function maybeRedirect() {
         if (!didRedirect && idx === last) {
           didRedirect = true;
-          // 5枚目が「開かれた」瞬間に遷移
           openWebinar();
         }
       }
@@ -181,7 +192,7 @@
 
       render();
 
-      // ====== 5) 入力操作（タップ／スワイプ／キーボード） ======
+      // ===== 4) 入力操作（タップ／スワイプ／キーボード） =====
       slidesEl.addEventListener("click", (ev) => {
         const t = ev.target.closest(".tap-zone");
         if (!t) return;
