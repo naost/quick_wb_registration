@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <title>LIFF Stories (5枚)</title>
+  <title>Open Zoom (LIFF Stories)</title>
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -100,50 +100,70 @@
         console.error("LIFF init error:", e);
       }
 
-      // ====== 2) 画像URLの受け取り（クエリ優先） ======
+      // ====== 2) クエリ取得 & Zoom ウェビナーURL生成 ======
       const u = new URL(location.href);
       const q = (k) => u.searchParams.get(k);
-      const images = [
-        q("img1") || "https://picsum.photos/1080/1920?random=101",
-        q("img2") || "https://picsum.photos/1080/1920?random=202",
-        q("img3") || "https://picsum.photos/1080/1920?random=303",
-        q("img4") || "https://picsum.photos/1080/1920?random=404",
-        q("img5") || "https://picsum.photos/1080/1920?random=505",
-      ];
 
-      // セット & プリロード
+      const confno = (q("id") || "").trim();     // 例: 91543957037
+      const tk     = q("tk");                    // 例: AzpJ...
+      const uuid   = q("uuid");                  // 例: WN_...
+
+      // https://zoom.us/w/{id}?tk=...&uuid=...
+      let zoomUrl = "";
+      if (confno) {
+        zoomUrl = `https://zoom.us/w/${encodeURIComponent(confno)}`;
+        const sp = new URLSearchParams();
+        if (tk)   sp.set("tk",   tk);
+        if (uuid) sp.set("uuid", uuid);
+        const qs = sp.toString();
+        if (qs) zoomUrl += `?${qs}`;
+      }
+      const FALLBACK_URL = "https://www.crimsoneducation.org/ja";
+
+      // ====== 3) 画像セット（指定がなければ Storyblok 既定） ======
+      const images = [
+        q("img1") || "https://a.storyblok.com/f/64062/1080x1920/a4cfd8581e/how_to_open_zoom_1.jpg",
+        q("img2") || "https://a.storyblok.com/f/64062/1080x1920/ac096ea302/how_to_open_zoom_2.jpg",
+        q("img3") || "https://a.storyblok.com/f/64062/1080x1920/6f359ca9e0/how_to_open_zoom_3.jpg",
+        q("img4") || "https://a.storyblok.com/f/64062/1080x1920/a3fb4b08d6/how_to_open_zoom_4.jpg",
+        q("img5") || "https://a.storyblok.com/f/64062/1080x1920/13fb6c2e02/how_to_open_zoom_5.jpg",
+      ];
       images.forEach((src, i) => {
         const el = document.getElementById(`img${i+1}`);
         if (el) el.src = src;
         const im = new Image(); im.src = src;
       });
 
-      // ====== 3) スライド制御 ======
+      // ====== 4) スライド制御 ======
       const slidesEl = document.getElementById("slides");
       const dotBars = Array.from(document.querySelectorAll(".dot > b"));
       const hints = document.getElementById("hint");
 
-      let idx = 0; // 0..4
-      const last = images.length - 1; // 4
+      let idx = 0;               // 0..4
+      const last = images.length - 1;
       let didRedirect = false;
-      const REDIRECT_URL = "https://www.crimsoneducation.org/ja";
+
+      function openWebinar() {
+        const target = zoomUrl || FALLBACK_URL; // confno 未指定時は Crimson に退避
+        try {
+          if (typeof liff !== "undefined" && liff.isInClient && liff.isInClient()) {
+            // LINE内 → 外部ブラウザ
+            liff.openWindow({ url: target, external: true });
+          } else {
+            // 通常ブラウザ
+            window.location.replace(target);
+          }
+        } catch (e) {
+          // 何かあれば通常遷移でフォールバック
+          window.location.href = target;
+        }
+      }
 
       function maybeRedirect() {
-        if (didRedirect) return;
-        if (idx === last) {
+        if (!didRedirect && idx === last) {
           didRedirect = true;
-          try {
-            if (typeof liff !== "undefined" && liff.isInClient && liff.isInClient()) {
-              // LINE内なら外部ブラウザで開く
-              liff.openWindow({ url: REDIRECT_URL, external: true });
-            } else {
-              // 通常ブラウザ
-              window.location.replace(REDIRECT_URL);
-            }
-          } catch (e) {
-            // 失敗時は通常遷移でフォールバック
-            window.location.href = REDIRECT_URL;
-          }
+          // 5枚目が「開かれた」瞬間に遷移
+          openWebinar();
         }
       }
 
@@ -153,7 +173,6 @@
         options.forEach((opt, i) => opt.setAttribute("aria-selected", String(i === idx)));
         dotBars.forEach((b, i) => b.style.width = i <= idx ? "100%" : "0%");
         if (idx > 0) hints.classList.add("hidden");
-        // 5枚目を「開いたら」即リダイレクト
         maybeRedirect();
       }
 
@@ -162,16 +181,14 @@
 
       render();
 
-      // ====== 4) タップ（左右ゾーン）
+      // ====== 5) 入力操作（タップ／スワイプ／キーボード） ======
       slidesEl.addEventListener("click", (ev) => {
         const t = ev.target.closest(".tap-zone");
         if (!t) return;
         (t.dataset.action === "next") ? next() : prev();
       }, { passive: true });
 
-      // ====== 5) スワイプ（左:next / 右:prev）
       let startX = 0, startY = 0, isTouch = false, moved = false, startTime = 0;
-
       function onStart(x, y) {
         isTouch = true; moved = false; startX = x; startY = y; startTime = Date.now();
       }
@@ -186,13 +203,8 @@
         const dt = Date.now() - startTime;
         const width = window.innerWidth;
 
-        if (moved && Math.abs(dx) > 50) {
-          if (dx < 0) next(); else prev();
-          return;
-        }
-        if (!moved && dt < 250) {
-          (x < width * 0.33) ? prev() : next();
-        }
+        if (moved && Math.abs(dx) > 50) { dx < 0 ? next() : prev(); return; }
+        if (!moved && dt < 250) { (x < width * 0.33) ? prev() : next(); }
       }
 
       slidesEl.addEventListener("touchstart", (e) => {
@@ -205,7 +217,6 @@
         const t = e.changedTouches[0]; onEnd(t.clientX);
       }, { passive: true });
 
-      // マウス操作（デスクトップ）
       let mouseDown = false;
       slidesEl.addEventListener("mousedown", (e) => { mouseDown = true; onStart(e.clientX, e.clientY); });
       slidesEl.addEventListener("mousemove", (e) => { if (mouseDown) onMove(e.clientX, e.clientY); });
