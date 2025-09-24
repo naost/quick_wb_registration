@@ -1,17 +1,63 @@
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<script>
-(async () => {
-  await liff.init({ liffId: "2007173778-oD2Wx7BE" });
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Open Zoom in Browser</title>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans JP, sans-serif; margin: 24px; }
+    button { font-size: 16px; padding: 12px 16px; border-radius: 10px; border: 1px solid #ddd; cursor: pointer; }
+    #status { margin-top: 12px; font-size: 14px; color: #666; }
+    code { background: #f5f5f5; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+<body>
+  <h1 style="font-size:18px; margin-top:0;">Zoom を外部ブラウザで開く</h1>
+  <p id="desc" style="margin:8px 0 16px;">「Zoomを開く」ボタンを押すと、外部ブラウザで Zoom ページを開きます。</p>
+  <button id="openBtn" type="button">Zoomを開く（外部ブラウザ）</button>
+  <div id="status" aria-live="polite"></div>
 
-  const u = new URL(location.href);
-  const id   = u.searchParams.get("id");     // ミーティングID / Webinar ID
-  const tk   = u.searchParams.get("tk");     // Token
-  const uuid = u.searchParams.get("uuid");   // UUID
+  <script>
+    (async () => {
+      try {
+        await liff.init({ liffId: "2007173778-oD2Wx7BE" });
 
-  // Zoom のブラウザ用ユニバーサルリンク
-  const zoomWebUrl = `https://zoom.us/w/${id}?tk=${encodeURIComponent(tk)}&uuid=${encodeURIComponent(uuid)}`;
+        const u = new URL(location.href);
+        // 1) 完成済みURLが ?u= に入っている場合はそれを優先
+        const urlFromU = u.searchParams.get("u");
 
-  // 外部ブラウザで開く
-  liff.openWindow({ url: zoomWebUrl, external: true });
-})();
-</script>
+        // 2) それが無ければ id/tk/uuid から組み立て
+        const id   = u.searchParams.get("id");
+        const tk   = u.searchParams.get("tk");
+        const uuid = u.searchParams.get("uuid");
+
+        // ユニバーサルリンク（ブラウザ用）
+        const built = (id && tk && uuid)
+          ? `https://zoom.us/w/${encodeURIComponent(id)}?tk=${encodeURIComponent(tk)}&uuid=${encodeURIComponent(uuid)}`
+          : null;
+
+        const zoomWebUrl = urlFromU || built;
+
+        const statusEl = document.getElementById("status");
+        const btn = document.getElementById("openBtn");
+
+        if (!zoomWebUrl) {
+          btn.disabled = true;
+          statusEl.textContent = "必要なクエリパラメータ（?u= または id/tk/uuid）が見つかりません。";
+          return;
+        }
+
+        btn.addEventListener("click", () => {
+          statusEl.textContent = "外部ブラウザを開いています…";
+          // 外部ブラウザで開く
+          liff.openWindow({ url: zoomWebUrl, external: true });
+        });
+
+      } catch (e) {
+        document.getElementById("status").textContent = "LIFF 初期化に失敗しました: " + (e && e.message ? e.message : e);
+      }
+    })();
+  </script>
+</body>
+</html>
