@@ -2,10 +2,28 @@
 <script>
 (async () => {
   await liff.init({ liffId: "2007173778-oD2Wx7BE" });
-  const u = new URL(location.href);
-  const zoomUrl = u.searchParams.get("u"); // 例: https://zoom.us/w/1234567890?tk=...&uuid=...
 
-  // まずはユニバーサルリンクを**外部ブラウザ**で開く
-  liff.openWindow({ url: zoomUrl, external: true });
+  const u = new URL(location.href);
+  const id   = u.searchParams.get("id");     // ミーティングID / Webinar ID
+  const tk   = u.searchParams.get("tk");     // Token
+  const uuid = u.searchParams.get("uuid");   // UUID
+
+  // Zoom アプリ用 URL スキーム
+  const zoomAppUrl  = `zoommtg://zoom.us/join?action=join&confno=${id}&tk=${tk}&uuid=${uuid}`;
+  // ブラウザ用ユニバーサルリンク
+  const zoomWebUrl  = `https://zoom.us/w/${id}?tk=${encodeURIComponent(tk)}&uuid=${encodeURIComponent(uuid)}`;
+
+  // フォールバック付きオープン処理
+  function openZoom() {
+    // アプリ用スキームを一度試す
+    liff.openWindow({ url: zoomAppUrl, external: true });
+
+    // 一定時間でフォールバック（アプリが無い/失敗した場合）
+    setTimeout(() => {
+      liff.openWindow({ url: zoomWebUrl, external: true });
+    }, 1500); // 1.5秒後にフォールバック
+  }
+
+  openZoom();
 })();
 </script>
