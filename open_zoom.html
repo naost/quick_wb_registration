@@ -3,14 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
-  <title>LIFF Stories</title>
+  <title>LIFF Stories (5枚)</title>
   <style>
     :root { color-scheme: dark; }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { margin:0; height:100%; overflow:hidden; background:#000; }
     body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif; }
 
-    /* ステージ */
     #app { position:fixed; inset:0; background:#000; overflow:hidden; touch-action:pan-y; }
     .slides {
       display:flex; width:100%; height:100%;
@@ -26,18 +25,16 @@
       user-select:none; -webkit-user-drag:none; pointer-events:none;
     }
 
-    /* タップ領域（左右） */
     .tap-zone { position:absolute; top:0; bottom:0; width:50%; }
     .tap-left  { left:0; }
     .tap-right { right:0; }
 
-    /* 進捗ドット */
     .dots {
       position:absolute; left:0; right:0; top:env(safe-area-inset-top, 12px);
       display:flex; gap:6px; justify-content:center; padding:12px 16px; pointer-events:none;
     }
     .dot {
-      flex:0 0 auto; width:32vw; max-width:160px; height:3px; border-radius:999px; background:#3a3a3a;
+      flex:0 0 auto; width:16vw; max-width:120px; height:3px; border-radius:999px; background:#3a3a3a;
       overflow:hidden;
     }
     .dot > b {
@@ -45,13 +42,10 @@
       background:#fff; transition: width 240ms linear;
     }
 
-    /* 画面下のヒント（初回のみ） */
     .hint {
       position:absolute; left:0; right:0; bottom:calc(env(safe-area-inset-bottom, 12px));
       text-align:center; font-size:12px; color:#ccc; opacity:.9; pointer-events:none;
     }
-
-    /* 非表示ユーティリティ */
     .hidden { display:none !important; }
   </style>
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -59,6 +53,9 @@
 <body>
   <div id="app" aria-live="polite">
     <div class="dots" id="dots" aria-hidden="true">
+      <span class="dot"><b></b></span>
+      <span class="dot"><b></b></span>
+      <span class="dot"><b></b></span>
       <span class="dot"><b></b></span>
       <span class="dot"><b></b></span>
     </div>
@@ -74,6 +71,21 @@
         <div class="tap-zone tap-left"  data-action="prev" aria-label="前へ"></div>
         <div class="tap-zone tap-right" data-action="next" aria-label="次へ"></div>
       </section>
+      <section class="slide" role="option" aria-selected="false">
+        <img id="img3" alt="slide 3" />
+        <div class="tap-zone tap-left"  data-action="prev" aria-label="前へ"></div>
+        <div class="tap-zone tap-right" data-action="next" aria-label="次へ"></div>
+      </section>
+      <section class="slide" role="option" aria-selected="false">
+        <img id="img4" alt="slide 4" />
+        <div class="tap-zone tap-left"  data-action="prev" aria-label="前へ"></div>
+        <div class="tap-zone tap-right" data-action="next" aria-label="次へ"></div>
+      </section>
+      <section class="slide" role="option" aria-selected="false">
+        <img id="img5" alt="slide 5" />
+        <div class="tap-zone tap-left"  data-action="prev" aria-label="前へ"></div>
+        <div class="tap-zone tap-right" data-action="next" aria-label="次へ"></div>
+      </section>
     </div>
 
     <p class="hint" id="hint">右タップ／左へスワイプで次へ、左タップ／右へスワイプで戻る</p>
@@ -84,8 +96,6 @@
       // ====== 1) LIFF 初期化 ======
       try {
         await liff.init({ liffId: "2007173778-oD2Wx7BE" });
-        // ログインを強制したくない場合は何もしない（必要なら以下を解除）
-        // if (!liff.isLoggedIn()) liff.login();
       } catch (e) {
         console.error("LIFF init error:", e);
       }
@@ -96,29 +106,55 @@
       const images = [
         q("img1") || "https://picsum.photos/1080/1920?random=101",
         q("img2") || "https://picsum.photos/1080/1920?random=202",
+        q("img3") || "https://picsum.photos/1080/1920?random=303",
+        q("img4") || "https://picsum.photos/1080/1920?random=404",
+        q("img5") || "https://picsum.photos/1080/1920?random=505",
       ];
 
-      // 明示的に1080x1920を使う想定だが、他サイズでもcoverで全画面表示
-      document.getElementById("img1").src = images[0];
-      document.getElementById("img2").src = images[1];
-
-      // プリロード
-      images.forEach(src => { const im = new Image(); im.src = src; });
+      // セット & プリロード
+      images.forEach((src, i) => {
+        const el = document.getElementById(`img${i+1}`);
+        if (el) el.src = src;
+        const im = new Image(); im.src = src;
+      });
 
       // ====== 3) スライド制御 ======
       const slidesEl = document.getElementById("slides");
       const dotBars = Array.from(document.querySelectorAll(".dot > b"));
       const hints = document.getElementById("hint");
 
-      let idx = 0; // 0..1
-      const last = images.length - 1;
+      let idx = 0; // 0..4
+      const last = images.length - 1; // 4
+      let didRedirect = false;
+      const REDIRECT_URL = "https://www.crimsoneducation.org/ja";
+
+      function maybeRedirect() {
+        if (didRedirect) return;
+        if (idx === last) {
+          didRedirect = true;
+          try {
+            if (typeof liff !== "undefined" && liff.isInClient && liff.isInClient()) {
+              // LINE内なら外部ブラウザで開く
+              liff.openWindow({ url: REDIRECT_URL, external: true });
+            } else {
+              // 通常ブラウザ
+              window.location.replace(REDIRECT_URL);
+            }
+          } catch (e) {
+            // 失敗時は通常遷移でフォールバック
+            window.location.href = REDIRECT_URL;
+          }
+        }
+      }
 
       function render() {
         slidesEl.style.transform = `translateX(${-idx * 100}%)`;
         const options = slidesEl.querySelectorAll('[role="option"]');
         options.forEach((opt, i) => opt.setAttribute("aria-selected", String(i === idx)));
         dotBars.forEach((b, i) => b.style.width = i <= idx ? "100%" : "0%");
-        if (idx > 0) hints.classList.add("hidden"); // 初回のみヒント表示
+        if (idx > 0) hints.classList.add("hidden");
+        // 5枚目を「開いたら」即リダイレクト
+        maybeRedirect();
       }
 
       function next() { if (idx < last) { idx++; render(); } }
@@ -126,14 +162,14 @@
 
       render();
 
-      // ====== 4) タップ（左右ゾーン） ======
+      // ====== 4) タップ（左右ゾーン）
       slidesEl.addEventListener("click", (ev) => {
         const t = ev.target.closest(".tap-zone");
         if (!t) return;
         (t.dataset.action === "next") ? next() : prev();
       }, { passive: true });
 
-      // ====== 5) スワイプ（左:next / 右:prev） ======
+      // ====== 5) スワイプ（左:next / 右:prev）
       let startX = 0, startY = 0, isTouch = false, moved = false, startTime = 0;
 
       function onStart(x, y) {
@@ -142,7 +178,6 @@
       function onMove(x, y) {
         if (!isTouch) return;
         const dx = x - startX, dy = y - startY;
-        // 縦スクロール優先。横方向が明確に大きい時のみ横スワイプ判定
         if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) moved = true;
       }
       function onEnd(x) {
@@ -151,19 +186,15 @@
         const dt = Date.now() - startTime;
         const width = window.innerWidth;
 
-        // スワイプ判定（閾値 50px）
         if (moved && Math.abs(dx) > 50) {
           if (dx < 0) next(); else prev();
           return;
         }
-
-        // タップ判定（短時間・少移動）
         if (!moved && dt < 250) {
           (x < width * 0.33) ? prev() : next();
         }
       }
 
-      // タッチ
       slidesEl.addEventListener("touchstart", (e) => {
         const t = e.changedTouches[0]; onStart(t.clientX, t.clientY);
       }, { passive: true });
@@ -174,20 +205,18 @@
         const t = e.changedTouches[0]; onEnd(t.clientX);
       }, { passive: true });
 
-      // マウス（デスクトップ動作用のおまけ）
+      // マウス操作（デスクトップ）
       let mouseDown = false;
       slidesEl.addEventListener("mousedown", (e) => { mouseDown = true; onStart(e.clientX, e.clientY); });
       slidesEl.addEventListener("mousemove", (e) => { if (mouseDown) onMove(e.clientX, e.clientY); });
       slidesEl.addEventListener("mouseup",   (e) => { if (mouseDown) { onEnd(e.clientX); mouseDown = false; }});
       slidesEl.addEventListener("mouseleave",(e) => { if (mouseDown) { mouseDown = false; isTouch = false; }});
 
-      // キー操作（← →）
       window.addEventListener("keydown", (e) => {
         if (e.key === "ArrowRight") next();
         if (e.key === "ArrowLeft")  prev();
       });
 
-      // 画面回転時のズレ防止
       window.addEventListener("resize", () => { requestAnimationFrame(render); });
     })();
   </script>
