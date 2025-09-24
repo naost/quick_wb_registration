@@ -1,55 +1,195 @@
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-<button id="open">Zoomを外部ブラウザで開く</button>
-<div id="status" style="font:14px/1.6 system-ui;margin-top:8px;"></div>
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+  <title>LIFF Stories</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin:0; height:100%; overflow:hidden; background:#000; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, sans-serif; }
 
-<script>
-(async () => {
-  const status = (t) => (document.getElementById('status').textContent = t || "");
+    /* ステージ */
+    #app { position:fixed; inset:0; background:#000; overflow:hidden; touch-action:pan-y; }
+    .slides {
+      display:flex; width:100%; height:100%;
+      transition: transform 320ms ease;
+      will-change: transform;
+    }
+    .slide {
+      position:relative; flex: 0 0 100%; height:100%;
+      display:grid; place-items:center; background:#000;
+    }
+    .slide img {
+      width:100vw; height:100vh; object-fit:cover; object-position:center;
+      user-select:none; -webkit-user-drag:none; pointer-events:none;
+    }
 
-  await liff.init({ liffId: "2007173778-oD2Wx7BE" }).catch(e => {
-    status("LIFF初期化に失敗: " + (e?.message || e));
-  });
+    /* タップ領域（左右） */
+    .tap-zone { position:absolute; top:0; bottom:0; width:50%; }
+    .tap-left  { left:0; }
+    .tap-right { right:0; }
 
-  // URLを決定（?u= があれば優先、なければ id/tk/uuid から組み立て）
-  const u = new URL(location.href);
-  const urlFromU = u.searchParams.get("u");
-  const id   = u.searchParams.get("id");
-  const tk   = u.searchParams.get("tk");
-  const uuid = u.searchParams.get("uuid");
-  const built = (id && tk && uuid)
-    ? `https://zoom.us/w/${encodeURIComponent(id)}?tk=${encodeURIComponent(tk)}&uuid=${encodeURIComponent(uuid)}`
-    : null;
-  const zoomWebUrl = urlFromU || built;
+    /* 進捗ドット */
+    .dots {
+      position:absolute; left:0; right:0; top:env(safe-area-inset-top, 12px);
+      display:flex; gap:6px; justify-content:center; padding:12px 16px; pointer-events:none;
+    }
+    .dot {
+      flex:0 0 auto; width:32vw; max-width:160px; height:3px; border-radius:999px; background:#3a3a3a;
+      overflow:hidden;
+    }
+    .dot > b {
+      display:block; height:100%; width:0%;
+      background:#fff; transition: width 240ms linear;
+    }
 
-  if (!zoomWebUrl) {
-    status("必要なパラメータ（?u= または id/tk/uuid）が不足しています。");
-    document.getElementById('open').disabled = true;
-    return;
-  }
+    /* 画面下のヒント（初回のみ） */
+    .hint {
+      position:absolute; left:0; right:0; bottom:calc(env(safe-area-inset-bottom, 12px));
+      text-align:center; font-size:12px; color:#ccc; opacity:.9; pointer-events:none;
+    }
 
-  document.getElementById('open').addEventListener('click', () => {
-    status("外部ブラウザを開いています…");
-    let tried = false;
+    /* 非表示ユーティリティ */
+    .hidden { display:none !important; }
+  </style>
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <div id="app" aria-live="polite">
+    <div class="dots" id="dots" aria-hidden="true">
+      <span class="dot"><b></b></span>
+      <span class="dot"><b></b></span>
+    </div>
 
-    // 1) LIFFの外部ブラウザオープン（最優先：iOSでもうまくいくケース多数）
-    try {
-      if (typeof liff !== "undefined" && liff.openWindow) {
-        tried = true;
-        liff.openWindow({ url: zoomWebUrl, external: true });
+    <div class="slides" id="slides" role="listbox" aria-label="ストーリー">
+      <section class="slide" role="option" aria-selected="true">
+        <img id="img1" alt="slide 1" />
+        <div class="tap-zone tap-left"  data-action="prev" aria-label="前へ"></div>
+        <div class="tap-zone tap-right" data-action="next" aria-label="次へ"></div>
+      </section>
+      <section class="slide" role="option" aria-selected="false">
+        <img id="img2" alt="slide 2" />
+        <div class="tap-zone tap-left"  data-action="prev" aria-label="前へ"></div>
+        <div class="tap-zone tap-right" data-action="next" aria-label="次へ"></div>
+      </section>
+    </div>
+
+    <p class="hint" id="hint">右タップ／左へスワイプで次へ、左タップ／右へスワイプで戻る</p>
+  </div>
+
+  <script>
+    (async () => {
+      // ====== 1) LIFF 初期化 ======
+      try {
+        await liff.init({ liffId: "2007173778-oD2Wx7BE" });
+        // ログインを強制したくない場合は何もしない（必要なら以下を解除）
+        // if (!liff.isLoggedIn()) liff.login();
+      } catch (e) {
+        console.error("LIFF init error:", e);
       }
-    } catch (_) {}
 
-    // 2) window.open フォールバック（iOSの一部で有効）
-    setTimeout(() => {
-      // 1 が効いていれば多くはここに来ないが、念のため
-      const w = window.open(zoomWebUrl, "_blank", "noopener,noreferrer");
-      if (w) return; // 成功
+      // ====== 2) 画像URLの受け取り（クエリ優先） ======
+      const u = new URL(location.href);
+      const q = (k) => u.searchParams.get(k);
+      const images = [
+        q("img1") || "https://picsum.photos/1080/1920?random=101",
+        q("img2") || "https://picsum.photos/1080/1920?random=202",
+      ];
 
-      // 3) 最終フォールバック：同一タブ遷移
-      setTimeout(() => {
-        location.href = zoomWebUrl;
-      }, 50);
-    }, 150);
-  });
-})();
-</script>
+      // 明示的に1080x1920を使う想定だが、他サイズでもcoverで全画面表示
+      document.getElementById("img1").src = images[0];
+      document.getElementById("img2").src = images[1];
+
+      // プリロード
+      images.forEach(src => { const im = new Image(); im.src = src; });
+
+      // ====== 3) スライド制御 ======
+      const slidesEl = document.getElementById("slides");
+      const dotBars = Array.from(document.querySelectorAll(".dot > b"));
+      const hints = document.getElementById("hint");
+
+      let idx = 0; // 0..1
+      const last = images.length - 1;
+
+      function render() {
+        slidesEl.style.transform = `translateX(${-idx * 100}%)`;
+        const options = slidesEl.querySelectorAll('[role="option"]');
+        options.forEach((opt, i) => opt.setAttribute("aria-selected", String(i === idx)));
+        dotBars.forEach((b, i) => b.style.width = i <= idx ? "100%" : "0%");
+        if (idx > 0) hints.classList.add("hidden"); // 初回のみヒント表示
+      }
+
+      function next() { if (idx < last) { idx++; render(); } }
+      function prev() { if (idx > 0)    { idx--; render(); } }
+
+      render();
+
+      // ====== 4) タップ（左右ゾーン） ======
+      slidesEl.addEventListener("click", (ev) => {
+        const t = ev.target.closest(".tap-zone");
+        if (!t) return;
+        (t.dataset.action === "next") ? next() : prev();
+      }, { passive: true });
+
+      // ====== 5) スワイプ（左:next / 右:prev） ======
+      let startX = 0, startY = 0, isTouch = false, moved = false, startTime = 0;
+
+      function onStart(x, y) {
+        isTouch = true; moved = false; startX = x; startY = y; startTime = Date.now();
+      }
+      function onMove(x, y) {
+        if (!isTouch) return;
+        const dx = x - startX, dy = y - startY;
+        // 縦スクロール優先。横方向が明確に大きい時のみ横スワイプ判定
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 8) moved = true;
+      }
+      function onEnd(x) {
+        if (!isTouch) return; isTouch = false;
+        const dx = x - startX;
+        const dt = Date.now() - startTime;
+        const width = window.innerWidth;
+
+        // スワイプ判定（閾値 50px）
+        if (moved && Math.abs(dx) > 50) {
+          if (dx < 0) next(); else prev();
+          return;
+        }
+
+        // タップ判定（短時間・少移動）
+        if (!moved && dt < 250) {
+          (x < width * 0.33) ? prev() : next();
+        }
+      }
+
+      // タッチ
+      slidesEl.addEventListener("touchstart", (e) => {
+        const t = e.changedTouches[0]; onStart(t.clientX, t.clientY);
+      }, { passive: true });
+      slidesEl.addEventListener("touchmove", (e) => {
+        const t = e.changedTouches[0]; onMove(t.clientX, t.clientY);
+      }, { passive: true });
+      slidesEl.addEventListener("touchend", (e) => {
+        const t = e.changedTouches[0]; onEnd(t.clientX);
+      }, { passive: true });
+
+      // マウス（デスクトップ動作用のおまけ）
+      let mouseDown = false;
+      slidesEl.addEventListener("mousedown", (e) => { mouseDown = true; onStart(e.clientX, e.clientY); });
+      slidesEl.addEventListener("mousemove", (e) => { if (mouseDown) onMove(e.clientX, e.clientY); });
+      slidesEl.addEventListener("mouseup",   (e) => { if (mouseDown) { onEnd(e.clientX); mouseDown = false; }});
+      slidesEl.addEventListener("mouseleave",(e) => { if (mouseDown) { mouseDown = false; isTouch = false; }});
+
+      // キー操作（← →）
+      window.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight") next();
+        if (e.key === "ArrowLeft")  prev();
+      });
+
+      // 画面回転時のズレ防止
+      window.addEventListener("resize", () => { requestAnimationFrame(render); });
+    })();
+  </script>
+</body>
+</html>
