@@ -312,21 +312,12 @@
           <div class="error-message" id="phoneError">電話番号を入力してください</div>
         </div>
 
-        <!-- Opt-in（ここに追加／任意） -->
-        <div class="checkbox-group" style="margin-top:10px">
-          <input type="checkbox" id="optIn" name="optIn"/>
-          <label for="optIn" class="checkbox-label">
-            SMS / LINE 通知を受け取ることに同意します。<br/>
-            <small>* Crimson Education から SMS 通知や、LINE 通知が届くことがございます。</small>
-          </label>
-        </div>
-
         <!-- 既存：プライバシー同意（必須） -->
         <div class="checkbox-group">
           <input type="checkbox" id="privacy" name="privacy" required/>
           <label for="privacy" class="checkbox-label">
             By providing your phone number above, and pressing the "Submit" button below, you agree to receive automated text messages from Crimson, Inc. and also agree to
-            <a href="https://www.crimsoneducation.org/us/privacy-policy/" target="_blank" style="color: var(--secondary-indigo); text-decoration: underline;">the privacy policy（プライバシーポリシー</a>に同意する。Crimson EducationからのSMSメッセージ受信に同意する。）
+            <a href="https://www.crimsoneducation.org/us/privacy-policy/" target="_blank" style="color: var(--secondary-indigo); text-decoration: underline;">the privacy policy（プライバシーポリシー</a>に同意する。Crimson EducationからLINE、SMSメッセージ受信に同意する。）
           </label>
         </div>
         <div class="error-message" id="privacyError">プライバシーポリシーに同意してください</div>
@@ -472,7 +463,6 @@
         const schoolType     = (fd.get("schoolType")     || "").trim();
         const personType     = (document.querySelector('input[name="studentOrGuardian"]:checked')?.value || "").trim();
         const privacyAccepted = !!document.getElementById("privacy").checked;
-        const marketingOptIn  = !!document.getElementById("optIn").checked;
 
         // 進学先（複数）
         const desiredCountries = Array.from(document.querySelectorAll('input[name="desiredCountries"]:checked')).map(el => el.value);
@@ -509,7 +499,6 @@
           desiredCountries,
           studentOrGuardian: personType,
           privacy: privacyAccepted,
-          marketingOptIn,
           lineUserId: lineUserId || ""
         };
 
