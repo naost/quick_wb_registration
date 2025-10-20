@@ -199,6 +199,7 @@
 
       <!-- action / method は未指定：JSでのみ送信（リダイレクト） -->
       <form id="registrationForm">
+      <input type="hidden" id="lineDisplayName" name="lineDisplayName" value="" />        
         <div class="form-group">
           <label for="school"><span class="english-text">Enter student's current school</span>（学校名・ご所属をご記入ください）*生徒様の学校をご記入ください </label>
           <input type="text" id="school" name="school" required/>
@@ -332,8 +333,10 @@
     // ====== 設定 ======
     const LIFF_ID = "2007173778-lxg3MkX5";
     const TY_BASE = "https://www.crimsoneducation.org/ja/thank-you/line-quick-wb-ty"; // 受け口
+    const SECONDARY_ENDPOINT = "https://script.google.com/macros/s/AKfycbwg5ZTYpLVjuRVhioxDYFbFZqlUyL5BNQdFBcNDmBquvG29d1PGaSIqrpTpwUySAqN8/exec"; 
 
     // ====== LIFF 初期化（lineUserId 取得用）======
+    // ③ LIFF 初期化内：displayName を取得
     async function initLIFF() {
       if (typeof liff === "undefined") return;
       try {
@@ -342,13 +345,19 @@
           liff.login({ redirectUri: location.href });
           return false;
         }
+        // プロフィール取得して hidden に格納
+        try {
+          const profile = await liff.getProfile().catch(() => null);
+          const dn = profile?.displayName || "";
+          const dnInput = document.getElementById("lineDisplayName");
+          if (dnInput) dnInput.value = dn;
+        } catch {}
         return true;
       } catch (e) {
         console.warn("LIFF initialization failed:", e);
         return false;
       }
     }
-    window.addEventListener("DOMContentLoaded", initLIFF);
 
     // ====== 進学先（複数可）で「まだ決まっていない」選択時のクリア処理 ======
     function setupDesiredCountryLogic() {
@@ -371,6 +380,7 @@
       boxes.forEach(b => b.addEventListener('change', handleChange));
     }
     window.addEventListener('DOMContentLoaded', setupDesiredCountryLogic);
+    window.addEventListener('DOMContentLoaded', initLIFF);
 
     // ====== フォーム送信制御（リダイレクトで送る）======
     const form = document.getElementById("registrationForm");
@@ -451,7 +461,7 @@
       submitBtn.disabled = true;
 
       try {
-        // ▼ フォーム値のみ収集
+              // ▼ フォーム値のみ収集
         const fd = new FormData(form);
         const firstName      = (fd.get("firstName") || "").trim();
         const lastName       = (fd.get("lastName")  || "").trim();
@@ -463,6 +473,7 @@
         const schoolType     = (fd.get("schoolType")     || "").trim();
         const personType     = (document.querySelector('input[name="studentOrGuardian"]:checked')?.value || "").trim();
         const privacyAccepted = !!document.getElementById("privacy").checked;
+        const lineDisplayName = (document.getElementById("lineDisplayName")?.value || "").trim();
 
         // 進学先（複数）
         const desiredCountries = Array.from(document.querySelectorAll('input[name="desiredCountries"]:checked')).map(el => el.value);
@@ -499,8 +510,33 @@
           desiredCountries,
           studentOrGuardian: personType,
           privacy: privacyAccepted,
-          lineUserId: lineUserId || ""
+          lineUserId: lineUserId || "",
+          lineDisplayName
         };
+
+        try {
+            const bodyStr = JSON.stringify(payload);
+          
+            // まず sendBeacon を試す（対応ブラウザでノンブロッキング）
+            let sent = false;
+            if (navigator.sendBeacon) {
+              const blob = new Blob([bodyStr], { type: "application/json" });
+              sent = navigator.sendBeacon(SECONDARY_ENDPOINT, blob);
+            }
+            // sendBeacon が無い／失敗時は keepalive fetch
+            if (!sent) {
+              fetch(SECONDARY_ENDPOINT, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: bodyStr,
+                keepalive: true,
+                // CORS が未設定の場合はサーバ側で許可が必要です
+              }).catch(() => {});
+            }
+          } catch (be) {
+            console.warn("Secondary endpoint post skipped:", be);
+          }
+
 
         const qs = "payload=" + encodeURIComponent(JSON.stringify(payload));
 
