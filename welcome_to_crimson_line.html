@@ -515,27 +515,36 @@
         };
 
         try {
-            const bodyStr = JSON.stringify(payload);
-          
-            // まず sendBeacon を試す（対応ブラウザでノンブロッキング）
-            let sent = false;
-            if (navigator.sendBeacon) {
-              const blob = new Blob([bodyStr], { type: "application/json" });
-              sent = navigator.sendBeacon(SECONDARY_ENDPOINT, blob);
-            }
-            // sendBeacon が無い／失敗時は keepalive fetch
-            if (!sent) {
-              fetch(SECONDARY_ENDPOINT, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: bodyStr,
-                keepalive: true,
-                // CORS が未設定の場合はサーバ側で許可が必要です
-              }).catch(() => {});
-            }
-          } catch (be) {
-            console.warn("Secondary endpoint post skipped:", be);
+          // 送信データを form-urlencoded へ
+          const params = new URLSearchParams();
+          params.set("payload", JSON.stringify(payload)); // GAS側で e.parameter.payload を JSON.parse する
+        
+          // まず sendBeacon（ノンブロッキング）を試す
+          let sent = false;
+          if (navigator.sendBeacon) {
+            // Blob に application/x-www-form-urlencoded を明示
+            const data = new Blob(
+              [params.toString()],
+              { type: "application/x-www-form-urlencoded;charset=UTF-8" }
+            );
+            sent = navigator.sendBeacon(SECONDARY_ENDPOINT, data);
           }
+        
+          // sendBeacon が無い／失敗時は keepalive fetch（プリフライト不要）
+          if (!sent) {
+            fetch(SECONDARY_ENDPOINT, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
+              },
+              body: params.toString(),
+              keepalive: true,
+              redirect: "follow" // GASの302追随（任意）
+            }).catch(() => {});
+          }
+        } catch (be) {
+          console.warn("Secondary endpoint post skipped:", be);
+        }
 
 
         const qs = "payload=" + encodeURIComponent(JSON.stringify(payload));
