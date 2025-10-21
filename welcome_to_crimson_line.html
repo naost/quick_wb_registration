@@ -197,6 +197,41 @@
     <div class="form-container">
       <h2 class="section-title">生徒様のご状況について</h2>
 
+            <!-- 現在の学校種別 -->
+        <div class="form-group">
+          <label for="schoolType">生徒様が現在通われている学校のタイプをご選択ください。</label>
+          <select id="schoolType" name="schoolType" required>
+            <option value="">選択してください</option>
+            <option value="Domestic_Intl">国内インター</option>
+            <option value="Domestic_Ja_Cur">国内公私立(日本語カリキュラム)</option>
+            <option value="Domestic_Intl_Cur">国内公私立(国際カリキュラム)</option>
+            <option value="Overseas">海外学校</option>
+          </select>
+          <div class="error-message" id="schoolTypeError">学校のタイプを選択してください</div>
+        </div>
+
+              <!-- 学年（graduationYear） -->
+        <div class="form-group">
+          <label for="graduationYear"><span class="english-text">生徒様ご本人の2025年9月時点での学年をご選択ください。</span> </label>
+          <select id="graduationYear" name="graduationYear" required>
+            <option value="">選択してください</option>
+            <option value="2026">Grade 12（高3）</option>
+            <option value="2027">Grade 11（高2）</option>
+            <option value="2028">Grade 10（高1）</option>
+            <option value="2029">Grade 9（中3）</option>
+            <option value="2030">Grade 8（中2）</option>
+            <option value="2031">Grade 7（中1）</option>
+            <option value="2032">Grade 6（小6）</option>
+            <option value="2033">Grade 5（小5）</option>
+            <option value="2034">Grade 4（小4）</option>
+            <option value="2035">Grade 3（小3）</option>
+            <option value="2036">Grade 2（小2）</option>
+            <option value="2037">Grade 1（小1）</option>
+            <option value="Already Graduated">Already Graduated(社会人)</option>
+          </select>
+          <div class="error-message" id="graduationYearError">学年を選択してください</div>
+        </div>
+
       <!-- action / method は未指定：JSでのみ送信（リダイレクト） -->
       <form id="registrationForm">
       <input type="hidden" id="lineDisplayName" name="lineDisplayName" value="" />        
@@ -223,27 +258,7 @@
           <div class="error-message" id="englishLevelError">英語力を選択してください</div>
         </div>
 
-        <!-- 学年（graduationYear） -->
-        <div class="form-group">
-          <label for="graduationYear"><span class="english-text">生徒様ご本人の2025年9月時点での学年をご選択ください。</span> </label>
-          <select id="graduationYear" name="graduationYear" required>
-            <option value="">選択してください</option>
-            <option value="2026">Grade 12（高3）</option>
-            <option value="2027">Grade 11（高2）</option>
-            <option value="2028">Grade 10（高1）</option>
-            <option value="2029">Grade 9（中3）</option>
-            <option value="2030">Grade 8（中2）</option>
-            <option value="2031">Grade 7（中1）</option>
-            <option value="2032">Grade 6（小6）</option>
-            <option value="2033">Grade 5（小5）</option>
-            <option value="2034">Grade 4（小4）</option>
-            <option value="2035">Grade 3（小3）</option>
-            <option value="2036">Grade 2（小2）</option>
-            <option value="2037">Grade 1（小1）</option>
-            <option value="Already Graduated">Already Graduated(社会人)</option>
-          </select>
-          <div class="error-message" id="graduationYearError">学年を選択してください</div>
-        </div>
+
 
         <!-- 目指している大学の国（複数可） -->
         <div class="form-group" id="desiredCountriesGroup">
@@ -255,19 +270,6 @@
             <label><input type="checkbox" name="desiredCountries" value="Undecided" id="desiredUndecided" /> まだ決まっていない</label>
           </div>
           <div class="error-message" id="desiredCountriesError">少なくとも1つ選択してください</div>
-        </div>
-
-        <!-- 現在の学校種別 -->
-        <div class="form-group">
-          <label for="schoolType">生徒様が現在通われている学校のタイプをご選択ください。</label>
-          <select id="schoolType" name="schoolType" required>
-            <option value="">選択してください</option>
-            <option value="Domestic_Intl">国内インター</option>
-            <option value="Domestic_Ja_Cur">国内公私立(日本語カリキュラム)</option>
-            <option value="Domestic_Intl_Cur">国内公私立(国際カリキュラム)</option>
-            <option value="Overseas">海外学校</option>
-          </select>
-          <div class="error-message" id="schoolTypeError">学校のタイプを選択してください</div>
         </div>
 
         <!-- 新規セクション：ご自身について -->
@@ -333,7 +335,7 @@
     // ====== 設定 ======
     const LIFF_ID = "2007173778-lxg3MkX5";
     const TY_BASE = "https://www.crimsoneducation.org/ja/thank-you/line-quick-wb-ty"; // 受け口
-    const SECONDARY_ENDPOINT = "https://script.google.com/macros/s/AKfycbxlUQUPWbTWv1tlTq_wvD0CNDl8zVfCuFmpCJPg4aDerqYXRgX_3z22MOjpRIi_iIwO/exec"; 
+    const SECONDARY_ENDPOINT = "https://script.google.com/macros/s/AKfycbywjrX2xm6Q4dEoIVNBWi0oghETGeSUrbYFLOR-aqZZ3-gF_jY2GQ3CjstdY2ZM10Tn/exec"; 
 
     // ====== LIFF 初期化（lineUserId 取得用）======
     // ③ LIFF 初期化内：displayName を取得
