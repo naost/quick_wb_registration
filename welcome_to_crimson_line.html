@@ -304,7 +304,7 @@
         </div>
 
         <div class="form-group">
-          <label for="prefecture"><span class="english-text">Prefecture</span>（お住まいの都道府県）</label>
+          <label for="prefecture"><span class="english-text">Prefecture</span>（お住まいの地域を選択してください）*お近くで実施される対面イベントを優先的にご案内いたします。</label>
           <select id="prefecture" name="prefecture" required>
             <option value="">選択してください</option>
             <option value="Hokkaido">北海道</option>
@@ -354,8 +354,11 @@
             <option value="Miyazaki">宮崎県</option>
             <option value="Kagoshima">鹿児島県</option>
             <option value="Okinawa">沖縄県</option>
+            <option value="USA">米国</option>
+            <option value="Singapore">シンガポール</option>
+            <option value="Other_Region">上記以外</option>
           </select>
-          <div class="error-message" id="prefectureError">都道府県を選択してください</div>
+          <div class="error-message" id="prefectureError">お住まいの地域を選択してください</div>
         </div>
         <div class="checkbox-group">
           <input type="checkbox" id="privacy" name="privacy" required/>
@@ -447,7 +450,7 @@
         { id: "graduationYear", errorId: "graduationYearError" },
         { id: "englishLevel",   errorId: "englishLevelError"   },
         { id: "schoolType",     errorId: "schoolTypeError"     },
-        { id: "prefecture",   errorId: "prefectureError"   }, // ★ JAVASCRIPT 変更点 1
+        { id: "prefecture",   errorId: "prefectureError"   }, // ★ 必須項目チェックに追加
       ];
 
       const sgSelected = document.querySelector('input[name="studentOrGuardian"]:checked');
@@ -518,7 +521,7 @@
         const personType     = (document.querySelector('input[name="studentOrGuardian"]:checked')?.value || "").trim();
         const privacyAccepted = !!document.getElementById("privacy").checked;
         const lineDisplayName = (document.getElementById("lineDisplayName")?.value || "").trim();
-        const prefecture     = (fd.get("prefecture") || "").trim(); // ★ JAVASCRIPT 変更点 2
+        const prefecture     = (fd.get("prefecture") || "").trim(); // ★ 値を取得
 
         // 進学先（複数）
         const desiredCountries = Array.from(document.querySelectorAll('input[name="desiredCountries"]:checked')).map(el => el.value);
@@ -557,7 +560,7 @@
           privacy: privacyAccepted,
           lineUserId: lineUserId || "",
           lineDisplayName,
-          prefecture // ★ JAVASCRIPT 変更点 3
+          prefecture // ★ payload に追加
         };
 
         try {
