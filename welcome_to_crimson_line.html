@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>無料ガイドブックプレゼントアンケート</title>
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet"/>
 
-  <!-- LIFF SDK -->
   <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/versions/2.22.0/sdk.js"></script>
 
   <style>
@@ -198,8 +196,7 @@
     <form id="registrationForm">
       <h2 class="section-title">生徒様のご状況について</h2>
 
-            <!-- 現在の学校種別 -->
-        <div class="form-group">
+            <div class="form-group">
           <label for="schoolType">生徒様が現在通われている学校のタイプをご選択ください。</label>
           <select id="schoolType" name="schoolType" required>
             <option value="">選択してください</option>
@@ -211,8 +208,7 @@
           <div class="error-message" id="schoolTypeError">学校のタイプを選択してください</div>
         </div>
 
-              <!-- 学年（graduationYear） -->
-        <div class="form-group">
+              <div class="form-group">
           <label for="graduationYear">生徒様ご本人の2025年9月時点での学年をご選択ください。</label>
           <select id="graduationYear" name="graduationYear" required>
             <option value="">選択してください</option>
@@ -233,7 +229,6 @@
           <div class="error-message" id="graduationYearError">学年を選択してください</div>
         </div>
 
-      <!-- action / method は未指定：JSでのみ送信（リダイレクト） -->
       <input type="hidden" id="lineDisplayName" name="lineDisplayName" value="" />        
         <div class="form-group">
           <label for="school"><span class="english-text">Enter student's current school</span>（学校名・ご所属をご記入ください）*生徒様の学校をご記入ください </label>
@@ -241,7 +236,6 @@
           <div class="error-message" id="schoolError">学校名・ご所属を入力してください</div>
         </div>
 
-        <!-- 英語力：School の直後に配置 -->
         <div class="form-group">
           <label for="englishLevel"><span class="english-text">English Level</span> (英語力)</label>
           <select id="englishLevel" name="englishLevel" required>
@@ -260,7 +254,6 @@
 
 
 
-        <!-- 目指している大学の国（複数可） -->
         <div class="form-group" id="desiredCountriesGroup">
           <label>生徒様が検討している進学先をご選択ください（複数可）</label>
           <div>
@@ -272,10 +265,8 @@
           <div class="error-message" id="desiredCountriesError">少なくとも1つ選択してください</div>
         </div>
 
-        <!-- 新規セクション：ご自身について -->
         <h2 class="section-title">あなたご自身について</h2>
 
-        <!-- 生徒/保護者 -->
         <div class="form-group">
           <label>Are you a Student or Guardian:（保護者 or 生徒）</label>
           <div class="segmented" id="studentGuardianGroup">
@@ -288,7 +279,6 @@
           <div class="error-message" id="studentOrGuardianError">生徒/保護者を選択してください</div>
         </div>
 
-        <!-- 氏名（記入者本人） -->
         <div class="form-group">
           <label for="firstName"><span class="english-text">First Name</span>（名）*記入者ご本人のお名前</label>
           <input type="text" id="firstName" name="firstName" required/>
@@ -301,21 +291,72 @@
           <div class="error-message" id="lastNameError">姓を入力してください</div>
         </div>
 
-        <!-- Email（ここに移動） -->
         <div class="form-group">
           <label for="email"><span class="english-text">Email Address</span>（メールアドレス）</label>
           <input type="email" id="email" name="email" required/>
           <div class="error-message" id="emailError">有効なメールアドレスを入力してください</div>
         </div>
 
-        <!-- Phone（ここに移動） -->
         <div class="form-group">
           <label for="phone"><span class="english-text">Phone Number</span>（電話番号）</label>
           <input type="tel" id="phone" name="phone" required/>
           <div class="error-message" id="phoneError">電話番号を入力してください</div>
         </div>
 
-        <!-- 既存：プライバシー同意（必須） -->
+        <div class="form-group">
+          <label for="prefecture"><span class="english-text">Prefecture</span>（お住まいの都道府県）</label>
+          <select id="prefecture" name="prefecture" required>
+            <option value="">選択してください</option>
+            <option value="Hokkaido">北海道</option>
+            <option value="Aomori">青森県</option>
+            <option value="Iwate">岩手県</option>
+            <option value="Miyagi">宮城県</option>
+            <option value="Akita">秋田県</option>
+            <option value="Yamagata">山形県</option>
+            <option value="Fukushima">福島県</option>
+            <option value="Ibaraki">茨城県</option>
+            <option value="Tochigi">栃木県</option>
+            <option value="Gunma">群馬県</option>
+            <option value="Saitama">埼玉県</option>
+            <option value="Chiba">千葉県</option>
+            <option value="Tokyo">東京都</option>
+            <option value="Kanagawa">神奈川県</option>
+            <option value="Niigata">新潟県</option>
+            <option value="Toyama">富山県</option>
+            <option value="Ishikawa">石川県</option>
+            <option value="Fukui">福井県</option>
+            <option value="Yamanashi">山梨県</option>
+            <option value="Nagano">長野県</option>
+            <option value="Gifu">岐阜県</option>
+            <option value="Shizuoka">静岡県</option>
+            <option value="Aichi">愛知県</option>
+            <option value="Mie">三重県</option>
+            <option value="Shiga">滋賀県</option>
+            <option value="Kyoto">京都府</option>
+            <option value="Osaka">大阪府</option>
+            <option value="Hyogo">兵庫県</option>
+            <option value="Nara">奈良県</option>
+            <option value="Wakayama">和歌山県</option>
+            <option value="Tottori">鳥取県</option>
+            <option value="Shimane">島根県</option>
+            <option value="Okayama">岡山県</option>
+            <option value="Hiroshima">広島県</option>
+            <option value="Yamaguchi">山口県</option>
+            <option value="Tokushima">徳島県</option>
+            <option value="Kagawa">香川県</option>
+            <option value="Ehime">愛媛県</option>
+            <option value="Kochi">高知県</option>
+            <option value="Fukuoka">福岡県</option>
+            <option value="Saga">佐賀県</option>
+            <option value="Nagasaki">長崎県</option>
+            <option value="Kumamoto">熊本県</option>
+            <option value="Oita">大分県</option>
+            <option value="Miyazaki">宮崎県</option>
+            <option value="Kagoshima">鹿児島県</option>
+            <option value="Okinawa">沖縄県</option>
+          </select>
+          <div class="error-message" id="prefectureError">都道府県を選択してください</div>
+        </div>
         <div class="checkbox-group">
           <input type="checkbox" id="privacy" name="privacy" required/>
           <label for="privacy" class="checkbox-label">
@@ -406,6 +447,7 @@
         { id: "graduationYear", errorId: "graduationYearError" },
         { id: "englishLevel",   errorId: "englishLevelError"   },
         { id: "schoolType",     errorId: "schoolTypeError"     },
+        { id: "prefecture",   errorId: "prefectureError"   }, // ★ JAVASCRIPT 変更点 1
       ];
 
       const sgSelected = document.querySelector('input[name="studentOrGuardian"]:checked');
@@ -476,6 +518,7 @@
         const personType     = (document.querySelector('input[name="studentOrGuardian"]:checked')?.value || "").trim();
         const privacyAccepted = !!document.getElementById("privacy").checked;
         const lineDisplayName = (document.getElementById("lineDisplayName")?.value || "").trim();
+        const prefecture     = (fd.get("prefecture") || "").trim(); // ★ JAVASCRIPT 変更点 2
 
         // 進学先（複数）
         const desiredCountries = Array.from(document.querySelectorAll('input[name="desiredCountries"]:checked')).map(el => el.value);
@@ -513,7 +556,8 @@
           studentOrGuardian: personType,
           privacy: privacyAccepted,
           lineUserId: lineUserId || "",
-          lineDisplayName
+          lineDisplayName,
+          prefecture // ★ JAVASCRIPT 変更点 3
         };
 
         try {
