@@ -129,6 +129,12 @@
       outline: none; border-color: var(--secondary-indigo);
       box-shadow: 0 0 0 4px rgba(115,115,227,.1); transform: translateY(-2px);
     }
+    /* --- 追加: 入力エラー時のスタイル --- */
+    input.input-error {
+      border-color: #d32f2f !important;
+      background-color: #fdf2f2 !important;
+      box-shadow: 0 0 0 4px rgba(211, 47, 47, 0.1) !important;
+    }
     select {
       cursor: pointer; appearance: none;
       background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233A0407' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
@@ -170,12 +176,19 @@
     }
     @keyframes spin { to { transform: rotate(360deg);} }
 
+    /* --- 修正: 電話番号レイアウト & エラーハイライト (ネストを解消) --- */
+    .phone-input-container { display: flex; gap: 10px; }
+    .country-select { width: 130px; flex-shrink: 0; }
+    
     @media (max-width: 600px) {
       .container { border-radius: 0; }
       body { padding: 0; }
       .header { padding: 30px 20px; }
       .form-container { padding: 30px 20px; }
       h1 { font-size: 20px; }
+      
+      .phone-input-container { gap: 8px; }
+      .country-select { width: 110px; }
     }
   </style>
 </head>
@@ -280,15 +293,17 @@
         </div>
 
         <div class="form-group">
-          <label for="firstName"><span class="english-text">First Name</span>（名）*記入者ご本人のお名前</label>
-          <input type="text" id="firstName" name="firstName" required/>
+          <label for="firstName"><span class="english-text">First Name</span>（名）*記入者ご本人のお名前<br><span style="font-size:12px; color:var(--secondary-indigo);">※アルファベットでご記入ください</span></label>
+          <input type="text" id="firstName" name="firstName" placeholder="Taro" required/>
           <div class="error-message" id="firstNameError">名を入力してください</div>
+          <div class="error-message" id="firstNameAlphaError">アルファベットで入力してください</div>
         </div>
 
         <div class="form-group">
-          <label for="lastName"><span class="english-text">Last Name</span>（姓）*記入者ご本人のお名前 </label>
-          <input type="text" id="lastName" name="lastName" required/>
+          <label for="lastName"><span class="english-text">Last Name</span>（姓）*記入者ご本人のお名前<br><span style="font-size:12px; color:var(--secondary-indigo);">※アルファベットでご記入ください</span></label>
+          <input type="text" id="lastName" name="lastName" placeholder="Yamada" required/>
           <div class="error-message" id="lastNameError">姓を入力してください</div>
+          <div class="error-message" id="lastNameAlphaError">アルファベットで入力してください</div>
         </div>
 
         <div class="form-group">
@@ -296,10 +311,22 @@
           <input type="email" id="email" name="email" required/>
           <div class="error-message" id="emailError">有効なメールアドレスを入力してください</div>
         </div>
-
+        
         <div class="form-group">
           <label for="phone"><span class="english-text">Phone Number</span>（電話番号）</label>
-          <input type="tel" id="phone" name="phone" required/>
+          <div class="phone-input-container">
+            <select id="countryCode" name="countryCode" class="country-select">
+              <option value="+81" selected>🇯🇵 +81</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+61">🇦🇺 +61</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+86">🇨🇳 +86</option>
+              <option value="+65">🇸🇬 +65</option>
+              <option value="+82">🇰🇷 +82</option>
+              <option value="">Other</option>
+            </select>
+            <input type="tel" id="phone" name="phone" placeholder="9012345678" required/>
+          </div>
           <div class="error-message" id="phoneError">電話番号を入力してください</div>
         </div>
 
@@ -427,6 +454,31 @@
     }
     window.addEventListener('DOMContentLoaded', setupDesiredCountryLogic);
     window.addEventListener('DOMContentLoaded', initLIFF);
+    // ====== 追加: 名前（アルファベット）のリアルタイム監視 ======
+    const nameFields = ['firstName', 'lastName'];
+    const alphaRegex = /^[a-zA-Z\s\-\.]+$/;
+
+    nameFields.forEach(id => {
+      const input = document.getElementById(id);
+      const errorMsg = document.getElementById(id + "AlphaError");
+      if (!input || !errorMsg) return;
+
+      input.addEventListener('input', function() {
+        const val = input.value;
+        if (val === "") {
+          input.classList.remove("input-error");
+          errorMsg.classList.remove("show");
+          return;
+        }
+        if (!alphaRegex.test(val)) {
+          input.classList.add("input-error");
+          errorMsg.classList.add("show");
+        } else {
+          input.classList.remove("input-error");
+          errorMsg.classList.remove("show");
+        }
+      });
+    });
 
     // ====== フォーム送信制御（リダイレクトで送る）======
     const form = document.getElementById("registrationForm");
@@ -471,6 +523,15 @@
           isValid = false;
         }
       });
+      // 追加: アルファベットチェック（送信時最終確認）
+      if (document.getElementById("firstName").value && !alphaRegex.test(document.getElementById("firstName").value)) {
+        document.getElementById("firstNameAlphaError").classList.add("show");
+        isValid = false;
+      }
+      if (document.getElementById("lastName").value && !alphaRegex.test(document.getElementById("lastName").value)) {
+        document.getElementById("lastNameAlphaError").classList.add("show");
+        isValid = false;
+      }
 
       // Email 形式チェック
       const emailVal = document.getElementById("email").value;
@@ -513,7 +574,10 @@
         const firstName      = (fd.get("firstName") || "").trim();
         const lastName       = (fd.get("lastName")  || "").trim();
         const email          = (fd.get("email")     || "").trim();
-        const phone          = (fd.get("phone")     || "").trim();
+        // 追加: 電話番号結合処理
+        const countryCode    = document.getElementById("countryCode").value;
+        const rawPhone       = (fd.get("phone")     || "").trim();
+        const phone          = countryCode ? `${countryCode}${rawPhone}` : rawPhone;
         const school         = (fd.get("school")    || "").trim();
         const graduationYear = (fd.get("graduationYear") || "").trim();
         const englishLevel   = (fd.get("englishLevel")   || "").trim();
@@ -615,6 +679,7 @@
     // ====== 簡易リアルタイム検証 ======
     document.querySelectorAll("input, select").forEach(el => {
       el.addEventListener("blur", () => {
+        // 修正: countryCodeなどエラー表示divが無い要素でエラーになるのを防ぐ
         const err = document.getElementById(el.id + "Error");
         if (!err) return;
         if (!el.value.trim()) err.classList.add("show");
