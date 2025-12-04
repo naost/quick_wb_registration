@@ -129,7 +129,7 @@
       outline: none; border-color: var(--secondary-indigo);
       box-shadow: 0 0 0 4px rgba(115,115,227,.1); transform: translateY(-2px);
     }
-    /* --- 追加: 入力エラー時のスタイル --- */
+    /* 入力エラー時のスタイル */
     input.input-error {
       border-color: #d32f2f !important;
       background-color: #fdf2f2 !important;
@@ -176,7 +176,7 @@
     }
     @keyframes spin { to { transform: rotate(360deg);} }
 
-    /* --- 修正: 電話番号レイアウト & エラーハイライト (ネストを解消) --- */
+    /* 電話番号レイアウト */
     .phone-input-container { display: flex; gap: 10px; }
     .country-select { width: 130px; flex-shrink: 0; }
     
@@ -190,6 +190,30 @@
       .phone-input-container { gap: 8px; }
       .country-select { width: 110px; }
     }
+
+    /* --- カスタムモーダル（警告用） --- */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6); z-index: 9999;
+      display: none; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.show { display: flex; animation: fadeIn 0.3s; }
+    .modal-content {
+      background: #fff; padding: 25px; border-radius: 12px;
+      max-width: 400px; width: 100%; text-align: center;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+    .modal-title { font-weight: bold; font-size: 18px; margin-bottom: 10px; color: var(--primary-color); }
+    .modal-body { font-size: 14px; color: #333; margin-bottom: 20px; line-height: 1.6; text-align: left; }
+    .ua-box {
+      background: #f0f0f0; padding: 10px; border-radius: 6px;
+      font-family: monospace; font-size: 11px; word-break: break-all;
+      margin: 10px 0; border: 1px solid #ccc; select-all: text;
+    }
+    .modal-buttons { display: flex; gap: 10px; justify-content: center; }
+    .btn-retry { background: var(--secondary-indigo); color: white; border:none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+    .btn-force { background: #999; color: white; border:none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -209,7 +233,7 @@
     <form id="registrationForm">
       <h2 class="section-title">生徒様のご状況について</h2>
 
-            <div class="form-group">
+      <div class="form-group">
           <label for="schoolType">生徒様が現在通われている学校のタイプをご選択ください。</label>
           <select id="schoolType" name="schoolType" required>
             <option value="">選択してください</option>
@@ -219,9 +243,9 @@
             <option value="Overseas">海外学校</option>
           </select>
           <div class="error-message" id="schoolTypeError">学校のタイプを選択してください</div>
-        </div>
+      </div>
 
-              <div class="form-group">
+      <div class="form-group">
           <label for="graduationYear">生徒様ご本人の2025年9月時点での学年をご選択ください。</label>
           <select id="graduationYear" name="graduationYear" required>
             <option value="">選択してください</option>
@@ -240,16 +264,16 @@
             <option value="Already Graduated">Already Graduated(社会人)</option>
           </select>
           <div class="error-message" id="graduationYearError">学年を選択してください</div>
-        </div>
+      </div>
 
       <input type="hidden" id="lineDisplayName" name="lineDisplayName" value="" />        
-        <div class="form-group">
+      <div class="form-group">
           <label for="school"><span class="english-text">Enter student's current school</span>（学校名・ご所属をご記入ください）*生徒様の学校をご記入ください </label>
           <input type="text" id="school" name="school" required/>
           <div class="error-message" id="schoolError">学校名・ご所属を入力してください</div>
-        </div>
+      </div>
 
-        <div class="form-group">
+      <div class="form-group">
           <label for="englishLevel"><span class="english-text">English Level</span> (英語力)</label>
           <select id="englishLevel" name="englishLevel" required>
             <option value="">選択してください</option>
@@ -263,11 +287,9 @@
             <option value="C2">資格なし（海外在住経験あり/幼稚園がインター/帰国生）</option>
           </select>
           <div class="error-message" id="englishLevelError">英語力を選択してください</div>
-        </div>
+      </div>
 
-
-
-        <div class="form-group" id="desiredCountriesGroup">
+      <div class="form-group" id="desiredCountriesGroup">
           <label>生徒様が検討している進学先をご選択ください（複数可）</label>
           <div>
             <label><input type="checkbox" name="desiredCountries" value="US" /> アメリカ</label><br/>
@@ -276,11 +298,11 @@
             <label><input type="checkbox" name="desiredCountries" value="Undecided" id="desiredUndecided" /> まだ決まっていない</label>
           </div>
           <div class="error-message" id="desiredCountriesError">少なくとも1つ選択してください</div>
-        </div>
+      </div>
 
-        <h2 class="section-title">あなたご自身について</h2>
+      <h2 class="section-title">あなたご自身について</h2>
 
-        <div class="form-group">
+      <div class="form-group">
           <label>Are you a Student or Guardian:（保護者 or 生徒）</label>
           <div class="segmented" id="studentGuardianGroup">
             <input type="radio" id="roleStudent" name="studentOrGuardian" value="Student" required/>
@@ -290,29 +312,29 @@
             <label for="roleGuardian" class="segmented-btn">Guardian（保護者）</label>
           </div>
           <div class="error-message" id="studentOrGuardianError">生徒/保護者を選択してください</div>
-        </div>
+      </div>
 
-        <div class="form-group">
+      <div class="form-group">
           <label for="firstName"><span class="english-text">First Name</span>（名）*記入者ご本人のお名前<br><span style="font-size:12px; color:var(--secondary-indigo);">※アルファベットでご記入ください</span></label>
           <input type="text" id="firstName" name="firstName" placeholder="Taro" required/>
           <div class="error-message" id="firstNameError">名を入力してください</div>
           <div class="error-message" id="firstNameAlphaError">アルファベットで入力してください</div>
-        </div>
+      </div>
 
-        <div class="form-group">
+      <div class="form-group">
           <label for="lastName"><span class="english-text">Last Name</span>（姓）*記入者ご本人のお名前<br><span style="font-size:12px; color:var(--secondary-indigo);">※アルファベットでご記入ください</span></label>
           <input type="text" id="lastName" name="lastName" placeholder="Yamada" required/>
           <div class="error-message" id="lastNameError">姓を入力してください</div>
           <div class="error-message" id="lastNameAlphaError">アルファベットで入力してください</div>
-        </div>
+      </div>
 
-        <div class="form-group">
+      <div class="form-group">
           <label for="email"><span class="english-text">Email Address</span>（メールアドレス）</label>
           <input type="email" id="email" name="email" required/>
           <div class="error-message" id="emailError">有効なメールアドレスを入力してください</div>
-        </div>
+      </div>
         
-        <div class="form-group">
+      <div class="form-group">
           <label for="phone"><span class="english-text">Phone Number</span>（電話番号）</label>
           <div class="phone-input-container">
             <select id="countryCode" name="countryCode" class="country-select">
@@ -328,9 +350,9 @@
             <input type="tel" id="phone" name="phone" placeholder="9012345678" required/>
           </div>
           <div class="error-message" id="phoneError">電話番号を入力してください</div>
-        </div>
+      </div>
 
-        <div class="form-group">
+      <div class="form-group">
           <label for="prefecture"><span class="english-text">Prefecture</span>（お住まいの地域を選択してください）*お近くで実施される対面イベントを優先的にご案内いたします。</label>
           <select id="prefecture" name="prefecture" required>
             <option value="">選択してください</option>
@@ -386,30 +408,100 @@
             <option value="Other_Region">上記以外</option>
           </select>
           <div class="error-message" id="prefectureError">お住まいの地域を選択してください</div>
-        </div>
-        <div class="checkbox-group">
+      </div>
+
+      <div class="checkbox-group">
           <input type="checkbox" id="privacy" name="privacy" required/>
           <label for="privacy" class="checkbox-label">
             By providing your phone number above, and pressing the "Submit" button below, you agree to receive automated text messages from Crimson, Inc. and also agree to
             <a href="https://www.crimsoneducation.org/us/privacy-policy/" target="_blank" style="color: var(--secondary-indigo); text-decoration: underline;">the privacy policy（プライバシーポリシー</a>に同意する。Crimson EducationからLINE、SMSメッセージ受信に同意する。）
           </label>
-        </div>
-        <div class="error-message" id="privacyError">プライバシーポリシーに同意してください</div>
+      </div>
+      <div class="error-message" id="privacyError">プライバシーポリシーに同意してください</div>
 
-        <button type="submit" class="submit-button" id="submitBtn">送信する</button>
-</form>
+      <button type="submit" class="submit-button" id="submitBtn">送信する</button>
+    </form>
     </div>
   </div>
 
-  
+  <div id="errorModal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-title">⚠️ LINE ID 読み込みエラー</div>
+      <div class="modal-body">
+        LINE IDの取得に失敗しました。<br>
+        このまま送信すると、一部機能（ウェビナー自動登録など）が正常に動作しない可能性があります。<br><br>
+        <strong>担当者への連絡用情報:</strong>
+        <div class="ua-box" id="uaContent"></div>
+        スクリーンショットを撮影いただくか、このまま「送信する」を押してください。
+      </div>
+      <div class="modal-buttons">
+        <button type="button" class="btn-force" id="forceSubmitBtn">送信する</button>
+        <button type="button" class="btn-retry" id="retryBtn">再読み込みを試す</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ====== 設定 ======
     const LIFF_ID = "2007173778-lxg3MkX5";
-    const TY_BASE = "https://www.crimsoneducation.org/ja/thank-you/line-quick-wb-ty"; // 受け口
+    const TY_BASE = "https://www.crimsoneducation.org/ja/thank-you/line-quick-wb-ty"; 
     const SECONDARY_ENDPOINT = "https://script.google.com/macros/s/AKfycbxlGfCGSX8Eb_bIEbej7rD0FzPEO_jyola__er_8ajYTIUvhFbVXG-86p8Oef2ckoip/exec"; 
 
-    // ====== LIFF 初期化（lineUserId 取得用）======
-    // ③ LIFF 初期化内：displayName を取得
+    // ====== データ保持（オートセーブ＆ロード）機能 ======
+    const FORM_STORAGE_KEY = "crimson_form_backup";
+
+    function saveAndReload() {
+      const formData = {};
+      document.querySelectorAll("input[type=text], input[type=email], input[type=tel], input[type=hidden], select").forEach(el => {
+        if (el.name) formData[el.name] = el.value;
+      });
+      const checkedBoxes = {};
+      document.querySelectorAll("input[type=checkbox]:checked").forEach(el => {
+        if (!checkedBoxes[el.name]) checkedBoxes[el.name] = [];
+        checkedBoxes[el.name].push(el.value);
+      });
+      formData["_checkboxes"] = checkedBoxes;
+      
+      const radios = document.querySelector("input[type=radio]:checked");
+      if (radios) formData[radios.name] = radios.value;
+
+      sessionStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(formData));
+      location.reload();
+    }
+
+    function restoreFormData() {
+      const savedJson = sessionStorage.getItem(FORM_STORAGE_KEY);
+      if (!savedJson) return;
+
+      try {
+        const data = JSON.parse(savedJson);
+        for (const [key, value] of Object.entries(data)) {
+          if (key === "_checkboxes") continue;
+          const el = document.querySelector(`[name="${key}"]`);
+          if (!el) continue;
+
+          if (el.type === "radio") {
+            const targetRadio = document.querySelector(`input[name="${key}"][value="${value}"]`);
+            if (targetRadio) targetRadio.checked = true;
+          } else {
+            el.value = value;
+          }
+        }
+        if (data._checkboxes) {
+          for (const [name, values] of Object.entries(data._checkboxes)) {
+            values.forEach(val => {
+              const cb = document.querySelector(`input[name="${name}"][value="${val}"]`);
+              if (cb) cb.checked = true;
+            });
+          }
+        }
+        sessionStorage.removeItem(FORM_STORAGE_KEY);
+      } catch (e) {
+        console.warn("データ復元に失敗しました", e);
+      }
+    }
+
+    // ====== LIFF 初期化 ======
     async function initLIFF() {
       if (typeof liff === "undefined") return;
       try {
@@ -418,7 +510,6 @@
           liff.login({ redirectUri: location.href });
           return false;
         }
-        // プロフィール取得して hidden に格納
         try {
           const profile = await liff.getProfile().catch(() => null);
           const dn = profile?.displayName || "";
@@ -432,7 +523,7 @@
       }
     }
 
-    // ====== 進学先（複数可）で「まだ決まっていない」選択時のクリア処理 ======
+    // ====== イベントリスナー登録 ======
     function setupDesiredCountryLogic() {
       const boxes = Array.from(document.querySelectorAll('input[name="desiredCountries"]'));
       const undecided = document.getElementById('desiredUndecided');
@@ -440,7 +531,6 @@
 
       function handleChange(e) {
         const checked = boxes.filter(b => b.checked);
-        // エラーメッセージの即時解除
         const err = document.getElementById('desiredCountriesError');
         if (checked.length > 0 && err) err.classList.remove('show');
 
@@ -452,9 +542,12 @@
       }
       boxes.forEach(b => b.addEventListener('change', handleChange));
     }
+
     window.addEventListener('DOMContentLoaded', setupDesiredCountryLogic);
     window.addEventListener('DOMContentLoaded', initLIFF);
-    // ====== 追加: 名前（アルファベット）のリアルタイム監視 ======
+    window.addEventListener('DOMContentLoaded', restoreFormData); // 復元処理
+
+    // 名前（アルファベット）のリアルタイム監視
     const nameFields = ['firstName', 'lastName'];
     const alphaRegex = /^[a-zA-Z\s\-\.]+$/;
 
@@ -480,19 +573,50 @@
       });
     });
 
-    // ====== フォーム送信制御（リダイレクトで送る）======
+    // ====== データ送信ヘルパー関数 ======
+    function sendPayloadToSecondaryEndpoint(payload) {
+      const params = new URLSearchParams();
+      params.set("payload", JSON.stringify(payload));
+      
+      let sent = false;
+      try {
+        if (navigator.sendBeacon) {
+          const data = new Blob(
+            [params.toString()],
+            { type: "application/x-www-form-urlencoded;charset=UTF-8" }
+          );
+          sent = navigator.sendBeacon(SECONDARY_ENDPOINT, data);
+        }
+      } catch(e) { console.warn(e); }
+
+      if (!sent) {
+        fetch(SECONDARY_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+          body: params.toString(),
+          keepalive: true,
+          redirect: "follow"
+        }).catch(() => {});
+      }
+    }
+
+    function redirectToThankYouPage(payload) {
+       const qs = "payload=" + encodeURIComponent(JSON.stringify(payload));
+       window.location.assign(TY_BASE + "?" + qs);
+    }
+
+    // ====== フォーム送信制御 ======
     const form = document.getElementById("registrationForm");
     const submitBtn = document.getElementById("submitBtn");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      // エラー表示リセット
+      // --- バリデーション開始 ---
       document.querySelectorAll(".error-message").forEach(el => el.classList.remove("show"));
       let isValid = true;
       let scrolledToError = false;
 
-      // 必須フィールド検証（テキスト/セレクト）
       const fields = [
         { id: "firstName", errorId: "firstNameError" },
         { id: "lastName",  errorId: "lastNameError"  },
@@ -502,7 +626,7 @@
         { id: "graduationYear", errorId: "graduationYearError" },
         { id: "englishLevel",   errorId: "englishLevelError"   },
         { id: "schoolType",     errorId: "schoolTypeError"     },
-        { id: "prefecture",   errorId: "prefectureError"   }, // ★ 必須項目チェックに追加
+        { id: "prefecture",   errorId: "prefectureError"   },
       ];
 
       const sgSelected = document.querySelector('input[name="studentOrGuardian"]:checked');
@@ -523,7 +647,7 @@
           isValid = false;
         }
       });
-      // 追加: アルファベットチェック（送信時最終確認）
+      // アルファベットチェック（送信時最終確認）
       if (document.getElementById("firstName").value && !alphaRegex.test(document.getElementById("firstName").value)) {
         document.getElementById("firstNameAlphaError").classList.add("show");
         isValid = false;
@@ -533,7 +657,7 @@
         isValid = false;
       }
 
-      // Email 形式チェック
+      // Email
       const emailVal = document.getElementById("email").value;
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (emailVal && !emailRegex.test(emailVal)) {
@@ -541,14 +665,14 @@
         isValid = false;
       }
 
-      // 進学先（複数可）少なくとも1つ
+      // Desired Countries
       const desiredChecked = document.querySelectorAll('input[name="desiredCountries"]:checked');
       if (!desiredChecked.length) {
         document.getElementById("desiredCountriesError").classList.add("show");
         isValid = false;
       }
 
-      // プライバシー必須
+      // Privacy
       if (!document.getElementById("privacy").checked) {
         document.getElementById("privacyError").classList.add("show");
         isValid = false;
@@ -563,18 +687,18 @@
         }
         return;
       }
+      // --- バリデーション終了 ---
 
       // ローディング状態
       submitBtn.innerHTML = '<span class="loading"></span> 送信中...';
       submitBtn.disabled = true;
 
       try {
-              // ▼ フォーム値のみ収集
+        // フォーム値収集
         const fd = new FormData(form);
         const firstName      = (fd.get("firstName") || "").trim();
         const lastName       = (fd.get("lastName")  || "").trim();
         const email          = (fd.get("email")     || "").trim();
-        // 追加: 電話番号結合処理
         const countryCode    = document.getElementById("countryCode").value;
         const rawPhone       = (fd.get("phone")     || "").trim();
         const phone          = countryCode ? `${countryCode}${rawPhone}` : rawPhone;
@@ -585,89 +709,82 @@
         const personType     = (document.querySelector('input[name="studentOrGuardian"]:checked')?.value || "").trim();
         const privacyAccepted = !!document.getElementById("privacy").checked;
         const lineDisplayName = (document.getElementById("lineDisplayName")?.value || "").trim();
-        const prefecture     = (fd.get("prefecture") || "").trim(); // ★ 値を取得
-
-        // 進学先（複数）
+        const prefecture     = (fd.get("prefecture") || "").trim();
         const desiredCountries = Array.from(document.querySelectorAll('input[name="desiredCountries"]:checked')).map(el => el.value);
+        
+        // User Agent の取得
+        const userAgent = navigator.userAgent;
 
-        // ▼ LINEユーザーID（?lineid → LIFF Profile → ID Token）
+        // ペイロード構築用関数
+        const createPayload = (uid) => ({
+          firstName, lastName, email, phone, school, graduationYear, englishLevel, schoolType,
+          desiredCountries, studentOrGuardian: personType, privacy: privacyAccepted,
+          lineUserId: uid || "",
+          lineDisplayName, prefecture, userAgent
+        });
+
+        // 1. LINE ID 取得試行
         let lineUserId = "";
-        try {
-          const sp = new URLSearchParams(location.search || "");
-          lineUserId = sp.get("lineid") || "";
-        } catch {}
-        if (!lineUserId && typeof liff !== "undefined" && liff.isLoggedIn?.()) {
-          try {
-            const profile = await liff.getProfile().catch(() => null);
-            lineUserId = profile?.userId || lineUserId;
-            if (!lineUserId && liff.getDecodedIDToken) {
-              const idt = liff.getDecodedIDToken();
-              if (idt?.sub) lineUserId = idt.sub;
-            }
-          } catch (err) {
-            console.warn("LINE userId fetch failed:", err);
-          }
+        if (typeof liff !== "undefined") {
+           // まず既存のトークン等を確認
+           if (liff.getDecodedIDToken && liff.getDecodedIDToken()?.sub) {
+             lineUserId = liff.getDecodedIDToken().sub;
+           }
+           // なければプロファイル取得を試みる (リトライロジック)
+           if (!lineUserId && liff.isLoggedIn()) {
+             try {
+               const profile = await liff.getProfile().catch(() => null);
+               if (profile?.userId) lineUserId = profile.userId;
+             } catch (e) {}
+           }
         }
 
-        // ▼ 送るのは「フォーム値 + lineUserId」のみ
-        const payload = {
-          firstName,
-          lastName,
-          email,
-          phone,
-          school,
-          graduationYear,
-          englishLevel,
-          schoolType,
-          desiredCountries,
-          studentOrGuardian: personType,
-          privacy: privacyAccepted,
-          lineUserId: lineUserId || "",
-          lineDisplayName,
-          prefecture // ★ payload に追加
-        };
+        // 2. ID有無による分岐
+        if (!lineUserId) {
+          // --- ID取得失敗時 ---
+          const errorPayload = createPayload(""); // 空のID
+          
+          // (A) バックグラウンドでGASへ送信 (エラーログ用)
+          sendPayloadToSecondaryEndpoint(errorPayload);
+          
+          // (B) モーダル表示
+          const modal = document.getElementById("errorModal");
+          const uaBox = document.getElementById("uaContent");
+          const forceBtn = document.getElementById("forceSubmitBtn");
+          const retryBtn = document.getElementById("retryBtn");
 
-        try {
-          // 送信データを form-urlencoded へ
-          const params = new URLSearchParams();
-          params.set("payload", JSON.stringify(payload)); // GAS側で e.parameter.payload を JSON.parse する
-        
-          // まず sendBeacon（ノンブロッキング）を試す
-          let sent = false;
-          if (navigator.sendBeacon) {
-            // Blob に application/x-www-form-urlencoded を明示
-            const data = new Blob(
-              [params.toString()],
-              { type: "application/x-www-form-urlencoded;charset=UTF-8" }
-            );
-            sent = navigator.sendBeacon(SECONDARY_ENDPOINT, data);
-          }
-        
-          // sendBeacon が無い／失敗時は keepalive fetch（プリフライト不要）
-          if (!sent) {
-            fetch(SECONDARY_ENDPOINT, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8"
-              },
-              body: params.toString(),
-              keepalive: true,
-              redirect: "follow" // GASの302追随（任意）
-            }).catch(() => {});
-          }
-        } catch (be) {
-          console.warn("Secondary endpoint post skipped:", be);
+          uaBox.textContent = userAgent; // UAを表示
+          modal.classList.add("show");
+          
+          // ボタンを通常の表示に戻しておく（裏ではdisabledのままにしない）
+          submitBtn.innerHTML = "送信する";
+          submitBtn.disabled = false;
+
+          // 「再読み込み」アクション
+          retryBtn.onclick = () => {
+             modal.classList.remove("show");
+             saveAndReload();
+          };
+
+          // 「送信する（強制）」アクション
+          forceBtn.onclick = () => {
+             modal.classList.remove("show");
+             // 既に (A) で送信済みだが、ユーザーフロー完了のためリダイレクトする
+             // 念のためもう一度送っても良いが、リダイレクトだけで十分
+             redirectToThankYouPage(errorPayload);
+          };
+          
+          // ここで処理中断（モーダル待ち）
+          return;
+
+        } else {
+          // --- ID取得成功時 (通常フロー) ---
+          const successPayload = createPayload(lineUserId);
+          
+          sendPayloadToSecondaryEndpoint(successPayload);
+          redirectToThankYouPage(successPayload);
         }
 
-
-        const qs = "payload=" + encodeURIComponent(JSON.stringify(payload));
-
-        console.group("WB Redirect (form values + lineUserId)");
-        console.log("redirectTo:", TY_BASE);
-        console.log("payload:", payload);
-        console.groupEnd();
-
-        window.location.assign(TY_BASE + "?" + qs);
       } catch (error) {
         console.error("Submission error:", error);
         alert("送信中にエラーが発生しました。もう一度お試しください。");
@@ -676,10 +793,9 @@
       }
     });
 
-    // ====== 簡易リアルタイム検証 ======
+    // ====== 簡易リアルタイム検証 (Blur時) ======
     document.querySelectorAll("input, select").forEach(el => {
       el.addEventListener("blur", () => {
-        // 修正: countryCodeなどエラー表示divが無い要素でエラーになるのを防ぐ
         const err = document.getElementById(el.id + "Error");
         if (!err) return;
         if (!el.value.trim()) err.classList.add("show");
