@@ -425,21 +425,27 @@
   </div>
 
   <div id="errorModal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-title">⚠️ LINE ID 読み込みエラー</div>
-      <div class="modal-body">
-        LINE IDの取得に失敗しました。<br>
-        このまま送信すると、一部機能（ウェビナー自動登録など）が正常に動作しない可能性があります。<br><br>
-        <strong>担当者への連絡用情報:</strong>
-        <div class="ua-box" id="uaContent"></div>
-        スクリーンショットを撮影いただくか、このまま「送信する」を押してください。
-      </div>
-      <div class="modal-buttons">
-        <button type="button" class="btn-force" id="forceSubmitBtn">送信する</button>
-        <button type="button" class="btn-retry" id="retryBtn">再読み込みを試す</button>
+      <div class="modal-content">
+        <div class="modal-title">⚠️ LINE ID 読み込みエラー</div>
+        <div class="modal-body">
+          LINE IDの取得に失敗しました。<br>
+          このまま送信すると、一部機能（ウェビナー自動登録など）が正常に動作しない可能性があります。
+          
+          <div style="margin: 15px 0; font-size: 13px; line-height: 1.8;">
+            1. <strong>"再読み込みを試す"</strong> を押し、再度送信をお試しください。<br>
+            2. 再度表示される場合は、<strong>この画面のスクリーンショットを撮影</strong>の上、<strong>"送信する"</strong> を押してください。<br>
+            3. 不具合が続く場合は LINE からご連絡ください。担当者が対応いたします。
+          </div>
+  
+          <strong>担当者への連絡用情報:</strong>
+          <div class="ua-box" id="uaContent"></div>
+          </div>
+        <div class="modal-buttons">
+          <button type="button" class="btn-force" id="forceSubmitBtn">送信する</button>
+          <button type="button" class="btn-retry" id="retryBtn">再読み込みを試す</button>
+        </div>
       </div>
     </div>
-  </div>
 
   <script>
     // ====== 設定 ======
